@@ -1,0 +1,13 @@
+{
+  "version": "1.0.0",
+  "schema": 1,
+  "managed": {
+    ".codex/cortex/cortex.mjs": "1a13147bc7018329b00e9b84b7d3084a31fb25db3f994d525497ed74e4b92411",
+    ".codex/cortex/protocol.md": "c9c7474b11aa01c0482f618e813634937d07dc6240a8b2b00fff457ae4fa9600",
+    ".codex/cortex/maintenance.md": "eae95ecada9eca3568e1b398f8421decd1f8477e1ddab9a27ad3ad4590ada8b7"
+  },
+  "blocks": {
+    "protocol": "8a2a1d46157ad870c42d45098de3a5b9813228474ee1e208f533e8f07b0f8b13",
+    "index": "0a139208f2e0b1b059fa76b7f107c48d3245d607aa19d6fd4ed9bcc8b9e1aca5"
+  }
+}

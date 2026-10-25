@@ -1,0 +1,105 @@
+<mq-page-header title="La constancia tiene premio."
+  ><div metadata class="metadata-items">
+    <span class="metadata-season">Temporada {{ store.snapshot()?.season?.label }}</span
+    ><span>Todos los aciertos. Toda la temporada.</span>
+  </div>
+  <mq-badge>Clasificación general</mq-badge
+  ><a routerLink="/jornadas" class="text-link">Volver a la jornada</a></mq-page-header
+>
+<section aria-labelledby="ranking-title">
+  <div class="section-heading ranking-intro">
+    <h2 id="ranking-title">Clasificación</h2>
+    <p class="muted">{{ rows().length }} participantes · Solo resultados oficiales</p>
+  </div>
+  @if (rows().length) {
+    <div
+      class="ranking-scroll"
+      tabindex="0"
+      role="region"
+      aria-label="Clasificación de temporada. Tabla desplazable horizontalmente."
+    >
+      <table class="ranking-table">
+        <caption class="sr-only">
+          Clasificación de temporada con participaciones reales y sin incluir el Pleno al 15
+        </caption>
+        <thead>
+          <tr>
+            <th scope="col">Pos.</th>
+            <th scope="col" class="ranking-name">Participante</th>
+            <th scope="col">Jornadas</th>
+            <th scope="col">Aciertos</th>
+            <th scope="col">Evaluables</th>
+            <th scope="col">Porcentaje</th>
+            <th scope="col">Ganadas</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of rows(); track row.participant.id; let index = $index) {
+            <tr>
+              <td class="ranking-index">{{ (index + 1).toString().padStart(2, '0') }}</td>
+              <th scope="row" class="ranking-name">
+                <span class="participant-avatar" aria-hidden="true">{{
+                  row.participant.initials
+                }}</span
+                ><span
+                  >{{ row.participant.name }}
+                  @if (!row.participant.active) {
+                    <span class="inactive-label">Inactivo</span>
+                  }
+                </span>
+              </th>
+              <td>{{ row.played }}</td>
+              <td class="hits-total">{{ row.hits }}</td>
+              <td>{{ row.evaluable }}</td>
+              <td>
+                <div class="percentage-cell">
+                  <span>{{
+                    row.percentage === null
+                      ? 'Sin datos'
+                      : (row.percentage | number: '1.1-1' : 'es') + ' %'
+                  }}</span>
+                  @if (row.percentage !== null) {
+                    <span class="percentage-track" aria-hidden="true"
+                      ><span [style.width.%]="row.percentage"></span
+                    ></span>
+                  }
+                </div>
+              </td>
+              <td>{{ row.wins }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  } @else {
+    <mq-empty-state
+      title="La temporada está por empezar"
+      message="La clasificación aparecerá cuando haya participantes."
+    />
+  }
+</section>
+<div class="leaderboard-notes">
+  <mq-card
+    ><h2>El porcentaje pone las cosas en contexto.</h2>
+    <p>
+      Los aciertos se dividen entre los pronósticos registrados que ya tienen signo oficial. Así
+      puedes comparar a quienes han participado en distintas jornadas.
+    </p>
+    <p>Sin signos evaluables mostramos «Sin datos». El Pleno al 15 se evalúa aparte.</p></mq-card
+  >
+  <div>
+    <h2>Las reglas de la tabla</h2>
+    <p>
+      Ordenamos por aciertos acumulados, porcentaje, nombre e identificador. No hay puntos
+      adicionales.
+    </p>
+    <p>
+      Una jornada ganada se cuenta al publicarse sus 14 signos oficiales. Si varios participantes
+      empatan en aciertos, comparten la victoria.
+    </p>
+    <p class="muted">
+      Los participantes inactivos conservan todos sus registros. Las jornadas abiertas no aportan
+      datos a esta clasificación.
+    </p>
+  </div>
+</div>

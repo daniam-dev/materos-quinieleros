@@ -1,0 +1,6 @@
+@import '@fontsource-variable/inter';
+@import '@fontsource-variable/manrope';
+@import 'tailwindcss';
+@import './styles/tokens.css';
+@import './styles/components.css';
+@import './styles/layout.css';

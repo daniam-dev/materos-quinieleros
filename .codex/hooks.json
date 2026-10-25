@@ -1,0 +1,48 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node -e \"const f=require('node:fs'),p=require('node:path');let d=process.cwd();while(!f.existsSync(p.join(d,'.codex/cortex/cortex.mjs'))){const n=p.dirname(d);if(n===d)throw Error('Cortex missing');d=n;}import(require('node:url').pathToFileURL(p.join(d,'.codex/cortex/cortex.mjs')).href).then(m=>m.cli(['--root',d,'hook']));\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node -e \"const f=require('node:fs'),p=require('node:path');let d=process.cwd();while(!f.existsSync(p.join(d,'.codex/cortex/cortex.mjs'))){const n=p.dirname(d);if(n===d)throw Error('Cortex missing');d=n;}import(require('node:url').pathToFileURL(p.join(d,'.codex/cortex/cortex.mjs')).href).then(m=>m.cli(['--root',d,'hook']));\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node -e \"const f=require('node:fs'),p=require('node:path');let d=process.cwd();while(!f.existsSync(p.join(d,'.codex/cortex/cortex.mjs'))){const n=p.dirname(d);if(n===d)throw Error('Cortex missing');d=n;}import(require('node:url').pathToFileURL(p.join(d,'.codex/cortex/cortex.mjs')).href).then(m=>m.cli(['--root',d,'hook']));\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "Interrupt": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node -e \"const f=require('node:fs'),p=require('node:path');let d=process.cwd();while(!f.existsSync(p.join(d,'.codex/cortex/cortex.mjs'))){const n=p.dirname(d);if(n===d)throw Error('Cortex missing');d=n;}import(require('node:url').pathToFileURL(p.join(d,'.codex/cortex/cortex.mjs')).href).then(m=>m.cli(['--root',d,'hook']));\"",
+            "timeout": 3
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,190 @@
+@if (journey(); as current) {
+  <mq-page-header [title]="'Jornada ' + current.number">
+    <div metadata class="metadata-items">
+      <span class="metadata-season">Temporada {{ store.snapshot()?.season?.label }}</span
+      ><span>{{ dateLabel() }}</span
+      ><span class="meta-separator" aria-hidden="true">/</span
+      ><span>{{ participants().length }} participantes</span>
+    </div>
+    <label class="sr-only" for="journey-select">Seleccionar jornada</label
+    ><p-select
+      inputId="journey-select"
+      ariaLabel="Seleccionar jornada"
+      [pt]="{ dropdown: { 'aria-label': 'Abrir jornadas' } }"
+      [options]="options()"
+      optionLabel="label"
+      optionValue="id"
+      [ngModel]="current.id"
+      (ngModelChange)="selectJourney($event)"
+      appendTo="body"
+    />
+    <mq-status-indicator [state]="state()" />
+    <div class="results-progress">
+      <div>
+        <span>Resultados oficiales</span><strong>{{ officialCount() }} <span>/ 14</span></strong>
+      </div>
+      <progress
+        [value]="officialCount()"
+        max="14"
+        aria-label="Resultados oficiales publicados"
+      ></progress>
+    </div>
+  </mq-page-header>
+
+  @if (published()) {
+    <section class="comparison-section" aria-labelledby="comparison-title">
+      <div class="comparison-toolbar">
+        <div>
+          <h2 id="comparison-title">La quiniela, en compañía.</h2>
+          <p class="muted">Cada pronóstico cuenta su historia.</p>
+        </div>
+        <div class="filter-group" role="group" aria-label="Filtrar encuentros">
+          @for (item of filters; track item.value) {
+            <mq-button
+              variant="quiet"
+              [pressed]="filter() === item.value"
+              (activated)="filter.set(item.value)"
+              >{{ item.label }}</mq-button
+            >
+          }
+        </div>
+      </div>
+      <div class="mobile-controls">
+        <div class="participant-select">
+          <label for="participant-select">Ver pronósticos de</label
+          ><p-select
+            inputId="participant-select"
+            ariaLabel="Ver pronósticos de"
+            [pt]="{ dropdown: { 'aria-label': 'Abrir participantes' } }"
+            [options]="participants()"
+            optionLabel="name"
+            optionValue="id"
+            [ngModel]="selectedParticipant()"
+            (ngModelChange)="participantId.set($event)"
+            appendTo="body"
+            [disabled]="globalView()"
+          />
+        </div>
+        <mq-button [pressed]="globalView()" (activated)="globalView.set(!globalView())">{{
+          globalView() ? 'Vista individual' : 'Comparar todos'
+        }}</mq-button>
+      </div>
+      @if (globalView()) {
+        <p class="scroll-hint">Desliza la tabla para comparar a todos los participantes.</p>
+      }
+      <mq-comparison-table
+        [journey]="current"
+        [participants]="participants()"
+        [asOf]="asOf()"
+        [filter]="filter()"
+        [selectedParticipant]="selectedParticipant()"
+        [global]="globalView()"
+      />
+      <div class="table-footer">
+        <div class="legend" aria-label="Leyenda">
+          <span
+            ><svg class="legend-hit" aria-hidden="true" viewBox="0 0 12 12">
+              <path d="m2 6 2.5 2.5L10 3" /></svg
+            >Acierto</span
+          ><span
+            ><svg class="legend-miss" aria-hidden="true" viewBox="0 0 12 12">
+              <path d="m3 3 6 6m0-6-6 6" /></svg
+            >Fallo</span
+          ><span><span class="legend-pending" aria-hidden="true"></span>Pendiente</span
+          ><span>— Sin apuesta</span>
+        </div>
+        <mq-button variant="quiet" (activated)="rulesVisible.set(true)">Cómo se calcula</mq-button>
+      </div>
+    </section>
+    <div class="journey-bottom">
+      <mq-card
+        ><mq-pleno [journey]="current" [participants]="participants()" [asOf]="asOf()"
+      /></mq-card>
+      <section class="quick-ranking" aria-labelledby="quick-ranking-title">
+        <div class="section-heading">
+          <h2 id="quick-ranking-title">Así va la jornada</h2>
+          <span class="muted">Top 3</span>
+        </div>
+        @if (officialCount() > 0) {
+          <ol>
+            @for (row of top(); track row.participant.id; let position = $index) {
+              <li>
+                <span class="ranking-position">{{ position + 1 }}</span
+                ><span class="ranking-person">{{ row.participant.name }}</span
+                ><strong
+                  >{{ row.hits }} <span>/ {{ row.evaluable }}</span></strong
+                >
+              </li>
+            }
+          </ol>
+          <p class="fine-print">
+            {{
+              state() === 'complete'
+                ? 'Clasificación final de los 14 encuentros.'
+                : 'Clasificación provisional según signos oficiales.'
+            }}
+          </p>
+        } @else {
+          <p class="ranking-awaiting">
+            Todo por decidir.<br /><span class="muted"
+              >La clasificación aparecerá con el primer signo oficial.</span
+            >
+          </p>
+        }
+        <a class="text-link" routerLink="/clasificacion">Ver clasificación de temporada</a>
+      </section>
+    </div>
+  } @else {
+    <mq-card
+      ><mq-empty-state
+        title="Cada uno guarda sus cartas."
+        [message]="
+          'Los pronósticos se publicarán después del cierre: ' +
+          closeLabel() +
+          ' (hora peninsular).'
+        "
+        ><span class="privacy-lock" aria-hidden="true"
+          ><svg viewBox="0 0 24 24">
+            <rect x="5" y="10" width="14" height="11" rx="2" />
+            <path d="M8 10V7a4 4 0 0 1 8 0v3m-4 5v2" /></svg
+        ></span>
+        <p class="muted">
+          Hasta entonces, las apuestas y la clasificación de esta jornada permanecen ocultas.
+        </p></mq-empty-state
+      ></mq-card
+    >
+    <section class="open-fixtures" aria-labelledby="schedule-title">
+      <h2 id="schedule-title">Los encuentros de esta jornada</h2>
+      <ol>
+        @for (fixture of current.fixtures; track fixture.id) {
+          <li>
+            <span class="fixture-number">{{ fixture.number.toString().padStart(2, '0') }}</span
+            ><span>{{ fixture.home }} <span class="muted">—</span> {{ fixture.away }}</span>
+          </li>
+        }
+      </ol>
+      <p class="muted">
+        Pleno al 15 · {{ current.pleno.fixture.home }} — {{ current.pleno.fixture.away }}
+      </p>
+    </section>
+  }
+  <mq-dialog title="Los resultados, sin letra pequeña" [(visible)]="rulesVisible"
+    ><p>
+      Solo un <strong>signo oficial publicado</strong> convierte un pronóstico en acierto o fallo.
+      Un marcador en juego o un partido finalizado sin signo oficial sigue pendiente.
+    </p>
+    <p>
+      <strong>Adm.</strong> indica una liquidación administrativa. Su X cuenta en el boleto, pero no
+      significa que los equipos hayan empatado.
+    </p>
+    <p>
+      Porcentaje = aciertos / pronósticos registrados con signo oficial. Una apuesta no registrada
+      queda fuera del denominador.
+    </p>
+    <p>El Pleno al 15 se comprueba por separado. M significa tres o más goles.</p>
+    <p>
+      Los empates se ordenan por aciertos, porcentaje, nombre e identificador. Las victorias se
+      adjudican al liquidar los 14 signos y se comparten si hay empate en aciertos.
+    </p></mq-dialog
+  >
+}
