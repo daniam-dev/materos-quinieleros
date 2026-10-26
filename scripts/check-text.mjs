@@ -6,6 +6,7 @@ const excluded = new Set([
   '.git',
   '.angular',
   '.impeccable',
+  '.netlify',
   'dist',
   'out-tsc',
   'test-results',

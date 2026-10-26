@@ -45,6 +45,9 @@ Thumbs.db
 /playwright-report/
 /test-results/
 /.impeccable/
+/.netlify/
+.env
+.env.*
 # Project Cortex private data
 /.codex/memory/journal/
 /.codex/cortex/local/

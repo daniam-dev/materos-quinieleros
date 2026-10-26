@@ -14,17 +14,24 @@ export default defineConfig({
     reducedMotion: 'reduce',
   },
   projects: [
-    { name: 'desktop', use: { viewport: { width: 1440, height: 1000 } } },
-    { name: 'tablet', use: { viewport: { width: 768, height: 1024 } } },
+    { name: 'desktop', testMatch: 'app.spec.ts', use: { viewport: { width: 1440, height: 1000 } } },
+    { name: 'tablet', testMatch: 'app.spec.ts', use: { viewport: { width: 768, height: 1024 } } },
     {
       name: 'mobile',
+      testMatch: 'app.spec.ts',
       use: { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true },
+    },
+    {
+      name: 'admin',
+      testMatch: 'admin.spec.ts',
+      dependencies: ['desktop', 'tablet', 'mobile'],
+      use: { viewport: { width: 1440, height: 1000 } },
     },
   ],
   webServer: {
-    command: 'npm start -- --host 127.0.0.1 --port 4200',
+    command: 'node scripts/e2e-server.mjs',
     url: 'http://127.0.0.1:4200',
-    reuseExistingServer: !process.env['CI'],
+    reuseExistingServer: false,
     timeout: 60000,
   },
 });

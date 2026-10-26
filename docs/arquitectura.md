@@ -4,19 +4,23 @@
 
 ```text
 src/app/
-  core/data/             Contrato, adaptador de archivo público y estado
+  core/data/             Contrato HTTP, edición privada y estado
+  core/auth/             Sesión y guard de administración
   core/theme/            Preset PrimeNG y traducciones
   domain/                Modelos inmutables y funciones puras
   features/journeys/     Jornada, matriz y Pleno al 15
   features/leaderboard/  Clasificación de temporada
+  features/admin/        Acceso, personas, jornadas y quinielas
   shared/ui/             Componentes visuales reutilizables
 src/styles/              Tokens, componentes y composición responsive
 e2e/                     Flujos reales, accesibilidad y capturas
+server/                  API, autenticación, validación y almacenamiento
+netlify/functions/       Entradas para Netlify Functions
 ```
 
 La aplicación usa componentes standalone con OnPush, rutas cargadas bajo demanda y Angular Signals. Angular 21 funciona sin Zone.js en esta configuración. `computed` deriva jornada, filtros, celdas y clasificación. Ninguna tarjeta contiene estadísticas precalculadas.
 
-`QuinielaRepository` define `loadSeason(): Promise<SeasonSnapshot>`. El token de inyección `QUINIELA_REPOSITORY` desacopla interfaz y datos. `FileQuinielaRepository` lee `public/data/season.json` por HTTP y añade el instante de lectura como `asOf`; `QuinielaStore` expone señales de datos, carga y error, e incluye reintento. Sustituir el proveedor permitirá integrar el servidor sin modificar la presentación.
+`QuinielaRepository` define `loadSeason(): Promise<SeasonSnapshot>`. `QUINIELA_REPOSITORY` desacopla interfaz y datos. `HttpQuinielaRepository` consulta `/api/season`; el servidor fija `asOf` y filtra datos privados. `QuinielaStore` expone datos, carga, error y reintento. La edición usa `AdminService` y un snapshot privado separado del store público.
 
 La temporada arranca sin jornadas y con nueve participantes reales. `currentJourneyId` asigna la jornada actual explícitamente y admite `null`; nunca se usa la primera jornada como sustituto. El histórico se ordena por fecha descendente y distingue `league` (Liga) de `europe` (boletos de Champions / Europa League), incluso con el mismo número. Los identificadores deben ser únicos dentro de la temporada. [Carga manual](datos.md).
 
@@ -41,14 +45,10 @@ Las pruebas unitarias definen sus entradas mínimas dentro de cada archivo `.spe
 
 La comparación, el Pleno y el Top 3 no se renderizan antes de `closesAt`. Las funciones de evaluación devuelven `hidden`, y la clasificación excluye esas jornadas. El cierre se evalúa como un instante ISO con zona horaria explícita, inclusive en el instante exacto.
 
-**La ocultación visual no es una medida de seguridad.** El archivo de temporada es público, por lo que solo puede contener pronósticos reales después del cierre. El servidor futuro debe decidir el cierre con su propio reloj y devolver un DTO público sin pronósticos ocultos ni datos derivados que permitan reconstruirlos. Los guards de Angular no resuelven esa obligación.
+El servidor decide el cierre con su reloj. `/api/season` elimina pronósticos y Pleno antes del cierre, también para visitantes autenticados. `/api/admin` entrega la copia privada tras comprobar la cookie firmada. `server/seed.json` sustituye al archivo público inicial. Los guards protegen la navegación; la autorización efectiva se repite en cada petición al servidor.
 
-## Próxima integración
+## Administración y próximos pasos
 
-1. Definir DTO público y privado, validación de entradas y política de publicación en servidor.
-2. Implementar autenticación y autorización del administrador en Netlify Functions.
-3. Implementar repositorio persistente con Blobs, identificadores estables y desactivación sin borrado histórico.
-4. Añadir administración y registro de pronósticos manteniendo el dominio puro.
-5. Incorporar resultados oficiales y trazabilidad de correcciones; revisar entonces el contrato de actualización de resultados y el refresco asíncrono.
+Implementados API pública/privada, validación, cookie firmada, panel de Daniel, disco local y adaptador Blobs con control de revisión. [Configuración y límites](administracion.md).
 
-No hay Functions, Blobs, autenticación falsa ni panel administrativo público en esta fase.
+Pendientes: configurar secretos y verificar Functions/Blobs desplegados, editor de resultados oficiales, fuente deportiva y trazabilidad completa de correcciones. Las vistas públicas refrescan al recargar; no hay actualización en tiempo real.

@@ -1,6 +1,6 @@
 # Materos Quinieleros
 
-Frontend de La Quiniela del grupo Materos Quinieleros. Jornadas y Clasificación con diseño editorial oscuro y cálculos de dominio. SPA Angular, sin SSR ni backend. Arranca con los nueve participantes del grupo y sin jornadas cargadas.
+Aplicación de La Quiniela del grupo Materos Quinieleros. SPA Angular con API para Netlify Functions, administración privada y almacenamiento persistente. Arranca con los nueve participantes del grupo y sin jornadas cargadas.
 
 ## Ejecutar
 
@@ -11,7 +11,9 @@ npx --yes npm@11.13.0 ci
 npm start
 ```
 
-Abre `http://localhost:4200`. Con npm 11.13.0 ya disponible, basta con `npm ci`.
+Abre `http://127.0.0.1:4200`. Con npm 11.13.0 ya disponible, basta con `npm ci`. El comando inicia Angular y la API local; los cambios se conservan en `.netlify/local/`, fuera de Git.
+
+Para activar tu acceso local, ejecuta `npm run admin:setup` en una terminal. Pide una contraseña sin mostrarla y guarda su hash y un secreto de sesión en `.env`, excluido de Git. Reinicia `npm start` y entra en `/acceso` con el usuario **daniel-arroyo**. Sin configurar los secretos, la consulta pública sigue funcionando y el acceso privado permanece deshabilitado. [Configuración de administración y Netlify](docs/administracion.md).
 
 ## Qué incluye
 
@@ -21,6 +23,8 @@ Abre `http://localhost:4200`. Con npm 11.13.0 ya disponible, basta con `npm ci`.
 - Top 3 calculado y Pleno al 15 independiente.
 - Clasificación de temporada con participación real, aciertos, evaluables, porcentajes y victorias compartidas cuando corresponde.
 - Nueve participantes reales, iniciales de nombre y apellido y Daniel Arroyo identificado como administrador en los datos. Histórico de inactivos y distinción de apuestas ausentes.
+- Administración exclusiva de Daniel: altas, bajas y reincorporaciones; creación y selección de jornadas; carga y corrección de los 14 signos y el Pleno de cualquier participante.
+- Autorización en servidor, cookie HttpOnly y pronósticos excluidos de la respuesta pública antes del cierre.
 - Sistema de diseño centralizado con Tailwind CSS 4, preset PrimeNG styled mode, Manrope e Inter locales.
 - Componentes compartidos de botones, superficies, encabezados, estados, badges, diálogo y pronósticos.
 - Estados de carga, error con reintento, filtros vacíos y ruta desconocida.
@@ -34,16 +38,16 @@ Angular 22 es la última línea estable, pero PrimeNG 22 requiere una clave Prim
 
 ## Arquitectura
 
-`domain` contiene modelos y reglas puras; `core/data` separa el contrato del repositorio, los mocks y el estado; `features` organiza Jornadas y Clasificación; `shared/ui` contiene la biblioteca visual. Las rutas se cargan bajo demanda.
+`domain` contiene modelos y reglas puras; `core/data` separa el contrato HTTP y el estado; `core/auth` gestiona la sesión; `features` organiza Jornadas, Clasificación y Administración; `shared/ui` contiene la biblioteca visual. Las rutas se cargan bajo demanda. `server` contiene autenticación, validación y API; `netlify/functions` adapta esa API a Netlify.
 
-El proveedor `QUINIELA_REPOSITORY` carga el archivo público `public/data/season.json`. Ahí se mantienen por ahora los participantes, las jornadas y `currentJourneyId` (inicialmente `null`). [Cómo cargar jornadas](docs/datos.md). [Arquitectura, cálculos y frontera de privacidad](docs/arquitectura.md).
+El proveedor `QUINIELA_REPOSITORY` consulta `/api/season`. Los participantes iniciales viven en `server/seed.json`, fuera de los archivos públicos. Netlify guarda los cambios en Blobs con revisión ETag y protección frente a escrituras concurrentes. [Cómo cargar jornadas](docs/datos.md). [Arquitectura y privacidad](docs/arquitectura.md).
 
 Los valores visuales viven en `src/styles/tokens.css`; PrimeNG referencia esas mismas variables. Cambiar `--radius-control` de `0.75rem` a `0.5rem` cambia botones, navegación y selectores sin editar las pantallas. Playwright verifica ese comportamiento. [Sistema de diseño](DESIGN.md).
 
 ## Verificación
 
 ```sh
-npm run check          # Formato, UTF-8/LF, lint, TypeScript, unitarias y build
+npm run check          # Formato, UTF-8/LF, lint, TypeScript, unitarias, servidor y build
 npx playwright install chromium
 npm run test:e2e       # Navegador real: 1440, 768 y 390 px
 npm run test:e2e:ui    # Inspector interactivo
@@ -51,7 +55,7 @@ npm run format        # Aplicar Prettier
 npm audit
 ```
 
-Playwright inicia el servidor local si no está disponible y comprueba la app con su archivo público real. Muestra el resultado en consola y conserva capturas y trazas únicamente ante fallos en `test-results`. Puedes generar un informe HTML expresamente con `npm run test:e2e -- --reporter=html`. [Alcance de las pruebas](docs/verificacion.md).
+Playwright inicia API y Angular con almacenamiento temporal y credenciales exclusivas de prueba. No intercepta peticiones API ni modifica datos locales del usuario. Comprueba consulta y edición; guarda capturas de revisión en `.impeccable/review/` y trazas de fallos en `test-results`. Informe HTML: `npm run test:e2e -- --reporter=html`. [Alcance de las pruebas](docs/verificacion.md).
 
 ## Build y Netlify
 
@@ -59,12 +63,12 @@ Playwright inicia el servidor local si no está disponible y comprueba la app co
 npm run build
 ```
 
-Salida: `dist/materos-quinieleros/browser`. `netlify.toml` configura el build, las versiones de herramientas y la reescritura SPA de rutas a `index.html`. No se ha realizado ningún despliegue.
+Salida: `dist/materos-quinieleros/browser`. `netlify.toml` configura el build, las funciones y la reescritura SPA. El frontend necesita la API. Los secretos se configuran para Functions según [administracion.md](docs/administracion.md). No se ha desplegado.
 
 ## Límites y siguiente fase
 
-**El archivo de temporada es público.** Solo debe contener información que ya pueda publicarse. La ocultación visual antes del cierre no protege los datos del archivo: no introducir apuestas reales previas al cierre hasta implementar en servidor la proyección pública.
+La API excluye pronósticos y Pleno antes del cierre usando su reloj. El frontend público nunca recibe la copia privada. El rol de los datos no concede permisos: solo una sesión validada por el servidor permite administrar.
 
-No hay autenticación, panel administrativo, persistencia de cambios desde la web, Functions, Blobs ni resultados externos. El rol de administrador es un dato descriptivo, sin permisos efectivos hasta incorporar el servidor. Tampoco se añaden Chart.js o un sistema de puntos: aquí no aportan valor.
+Hay un único acceso administrativo para Daniel; el resto consulta sin registrarse. No hay recuperación por correo, editor de resultados oficiales ni conexión deportiva externa. No se añaden Chart.js ni un sistema de puntos.
 
-Siguiente fase: contrato público/privado y autorización del servidor, después persistencia y administración. La actualización Angular/PrimeNG 22 requiere resolver primero la licencia y el runtime. Las pruebas actuales cubren Chromium; una revisión con lectores de pantalla y Safari/Firefox queda pendiente antes de producción.
+Antes de producción queda configurar secretos y verificar Functions, Blobs y límite de intentos en un despliegue real. La actualización Angular/PrimeNG 22 requiere resolver licencia y runtime. Las pruebas cubren Chromium; quedan pendientes lectores de pantalla y Safari/Firefox.

@@ -6,7 +6,7 @@ import { routes } from './app.routes';
 import { providePrimeNG } from 'primeng/config';
 import { MaterosPreset } from './core/theme/materos-preset';
 import { QUINIELA_REPOSITORY } from './core/data/quiniela-repository';
-import { FileQuinielaRepository } from './core/data/file-quiniela-repository';
+import { HttpQuinielaRepository } from './core/data/http-quiniela-repository';
 import { ES_TRANSLATION } from './core/theme/es-translation';
 
 export const appConfig: ApplicationConfig = {
@@ -27,6 +27,6 @@ export const appConfig: ApplicationConfig = {
         },
       },
     }),
-    { provide: QUINIELA_REPOSITORY, useClass: FileQuinielaRepository },
+    { provide: QUINIELA_REPOSITORY, useClass: HttpQuinielaRepository },
   ],
 };

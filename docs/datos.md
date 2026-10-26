@@ -1,20 +1,17 @@
-# Cargar jornadas
+# Cargar jornadas y quinielas
 
-La app lee `public/data/season.json`. Inicialmente contiene los nueve participantes del grupo, `journeys: []` y `currentJourneyId: null`. Los cambios se realizan en el archivo y se consultan recargando la web; todavía no hay editor ni guardado desde la interfaz.
+Daniel Arroyo entra en `/acceso` como `daniel-arroyo`. **Administración** solo aparece con su sesión validada. [Preparar el acceso](administracion.md).
 
-Para añadir una jornada, incorpora a `journeys` un objeto con el contrato `Journey` de `src/app/domain/models.ts`:
+1. En **Jornadas**, introduce número, Liga o Champions / Europa League, cierre y los 15 encuentros reales con sus fechas. Se usa la zona horaria del dispositivo y se guarda en UTC. El cierre no puede ser posterior a ningún encuentro. La primera jornada se asigna como actual.
+2. En **Quinielas**, selecciona jornada y participante. Marca los 14 signos o pega 14 valores `1`, `X`, `2` separados por espacios, comas o saltos de línea. Completa el Pleno con `0`, `1`, `2` o `M` y guarda.
+3. Para corregir, selecciona persona y jornada. Se recuperan los valores; **Actualizar quiniela** sustituye la apuesta sin duplicarla.
+4. En **Personas**, añade nombre y apellidos. **Dar de baja** exige confirmar y conserva el histórico. **Reincorporar** permite volver a jugar. Daniel no se puede desactivar desde el panel.
+5. En **Jornadas**, cambia la actual o selecciona «Sin jornada actual». Las anteriores permanecen en el histórico.
 
-- `id` único, `seasonId` coincidente con la temporada y `number` del boleto.
-- `competition: "league"` para Liga o `"europe"` para un boleto de Champions / Europa League, que puede incluir encuentros de ambas competiciones. El número puede coincidir entre tipos; el identificador debe ser distinto.
-- `startsAt`, `endsAt`, `closesAt` y fechas de publicación en ISO con zona horaria explícita.
-- `participantIds` con los identificadores existentes de quienes juegan ese boleto.
-- `fixtures` con los 14 encuentros numerados, `predictions` y `officialResults` según estén disponibles.
-- `pleno` con el encuentro 15, sus pronósticos y el resultado oficial cuando se publique.
+Los pronósticos quedan fuera de la respuesta pública hasta `closesAt`, inclusive en el instante de cierre. Daniel puede corregirlos también después del cierre; esas correcciones afectan a la comparativa pública. Las vistas públicas se actualizan al recargar, sin sincronización en tiempo real.
 
-Asigna su `id` a `currentJourneyId` para mostrarla como «Jornada actual». Al cambiar la actual, las jornadas anteriores permanecen en el selector. Usa `null` si todavía no hay una nueva jornada; la app mantiene accesible el histórico sin elegir otra automáticamente.
+El contrato está en `src/app/domain/models.ts`. La API valida las relaciones y guarda la quiniela completa (14 signos y Pleno), inscribiendo al participante en la jornada. Una persona inactiva conserva sus apuestas; se puede corregir una jornada en la que ya participó.
 
-La clasificación suma todas las jornadas publicadas de la temporada, incluidas las europeas. Antes de introducir resultados, los jugadores aparecen sin posiciones y con «Sin datos» en porcentaje.
+Los datos iniciales están en `server/seed.json`, fuera de los archivos públicos. Se usan solo si aún no hay snapshot guardado. Los cambios se conservan en `.netlify/local/season.json` en desarrollo o en Netlify Blobs en servidor. Editar el seed no reemplaza datos guardados. No hay jornadas ficticias en los datos iniciales; los tests crean entradas temporales aisladas.
 
-Los participantes tienen nombre, apellido, iniciales, actividad y rol descriptivo. Las iniciales corresponden a la primera letra del nombre y del apellido. El único `admin` inicial es `daniel-arroyo`; esto no concede acceso ni sustituye la futura autorización del servidor.
-
-El archivo se sirve públicamente: incorpora únicamente apuestas que ya se puedan publicar. Para recibir y guardar apuestas privadas antes del cierre será necesario el servidor.
+No hay todavía editor de resultados oficiales ni conexión deportiva. No se deducen signos oficiales a partir de marcadores.

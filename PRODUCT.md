@@ -8,15 +8,15 @@ web
 
 ## Stack
 
-Angular standalone, TypeScript estricto, Signals, Tailwind CSS 4, PrimeNG styled mode, npm, SPA sin SSR. Netlify será el destino futuro.
+Angular standalone, TypeScript estricto, Signals, Tailwind CSS 4, PrimeNG styled mode, npm, SPA sin SSR. API preparada para Netlify Functions y Blobs; desarrollo local con servidor Node y persistencia en disco.
 
 ## Usuarios y propósito
 
-Un grupo de amigos consulta y compara sus quinielas semanales sin registrarse. Un administrador introducirá posteriormente las apuestas recibidas por WhatsApp. La comparativa es el centro del producto.
+Un grupo de amigos consulta y compara sus quinielas semanales sin registrarse. Daniel Arroyo accede con contraseña para introducir las apuestas recibidas por WhatsApp y gestionar el grupo. La comparativa es el centro del producto.
 
 ## Capacidades y restricciones
 
-Jornadas y Clasificación con nueve participantes reales y sin jornadas iniciales. Datos públicos mantenidos en `public/data/season.json`; selector de jornada actual explícita e histórico de Liga y Champions / Europa League. Daniel Arroyo figura como administrador, sin autenticación ni permisos efectivos todavía. Solo los signos oficiales determinan aciertos. Pleno al 15 separado. Los participantes inactivos conservan su histórico. Sin administración funcional, persistencia desde la web, integraciones externas ni despliegue.
+Jornadas y Clasificación con nueve participantes reales y sin jornadas iniciales. Consulta pública por API, jornada actual explícita e histórico de Liga y Champions / Europa League. Administración exclusiva de Daniel: altas, bajas y reincorporaciones, creación de jornadas y carga/corrección de quinielas ajenas. Autorización en servidor y pronósticos privados hasta el cierre. Solo los signos oficiales determinan aciertos; Pleno separado. Los inactivos conservan su histórico. Secretos fuera del repositorio. Sin editor de resultados oficiales, integraciones deportivas ni despliegue verificado.
 
 ## Compromisos de marca
 

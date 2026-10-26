@@ -27,12 +27,15 @@ La documentación de instalación actual pide la clave, mientras que un archivo 
 | Inter Variable, Manrope Variable | Fuentes alojadas localmente         | SIL OFL 1.1         |
 | Playwright                       | Navegador real y capturas           | Apache-2.0          |
 | Vitest                           | Tests unitarios                     | MIT                 |
+| @netlify/blobs 11.1.6            | Persistencia del servidor           | MIT                 |
 
 Se conservan los avisos de terceros de los paquetes; el build genera `3rdpartylicenses.txt`. No se usan imágenes de terceros ni servicios remotos de fuentes. Chart.js no se instala: las tablas y barras de proporción sencillas cubren el caso sin añadir una librería de gráficos.
 
 ## Reproducibilidad y auditoría
 
 Solo se usa npm, con `package-lock.json`. npm 11.5.2 del sistema falló con un error interno `edgesOut` al resolver peers. Se utilizó npm 11.13.0 mediante `npx`, sin modificar la instalación global. El campo `packageManager` y Netlify fijan esa versión.
+
+Administración añadida el 26/10/2026: SDK Blobs 11.1.6 (Node >=22.12.0 y licencia MIT comprobados en el paquete). Lockfile normalizado e instalación limpia con npm 11.13.0. El SDK solo se importa en servidor. Sus dos avisos de deprecación de OpenTelemetry no se confunden con vulnerabilidades de auditoría.
 
 Vitest se actualizó a 4.1.12 para corregir avisos de auditoría. Angular build 21.2.28 fija Undici 7.29.1; se aplica un override localizado a 7.30.1 para corregir sus avisos, sin cambiar la versión principal. Revisar y retirar ese override cuando Angular build incorpore la corrección. No se usó `--force` ni `--legacy-peer-deps`.
 

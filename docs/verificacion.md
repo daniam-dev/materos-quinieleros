@@ -1,30 +1,35 @@
 # Verificación
 
-## Suite actual
+## Corrección del acceso local — 26/10/2026
 
-`npm run check` ejecuta formato, UTF-8 sin BOM/LF/salto final, lint, TypeScript de aplicación y pruebas, Vitest y build de producción.
+Reproducido el fallo informado por el usuario: con credenciales deliberadamente incorrectas, `127.0.0.1:4200` devolvía 401 y `localhost:4200` devolvía 403 de origen. El adaptador local fijaba siempre el primer host; el cliente convertía cualquier 403 en «La sesión ha caducado».
 
-`tsconfig.app.json` y `tsconfig.spec.json` fijan `rootDir: "./src"`. Se reprodujo TS5011 con TypeScript 6.0.3 del editor antes del cambio y se verificaron ambos proyectos sin ese diagnóstico después; la compilación de Angular mantiene TypeScript 5.9.3 del lockfile. La raíz explícita evita depender de la inferencia de directorios de cada versión.
+El adaptador preserva ahora el host local permitido a través del proxy; siguen rechazándose otros orígenes, hosts arbitrarios y URLs externas. La API identifica la falta de sesión con `SESSION_REQUIRED`, y solo ese código activa la recuperación de sesión en el cliente. Los errores de credenciales y de origen conservan su mensaje real.
 
-Las 29 pruebas unitarias comprueban las reglas con entradas mínimas locales a cada `.spec.ts`: publicación y cierre inclusivo, signos oficiales futuros, marcadores provisionales, liquidación administrativa, aciertos y ausencias, denominadores, desempates, inactivos, inscripciones, victorias compartidas, Pleno independiente, selección de jornada, componentes y reintento de carga. No dependen de un catálogo de demostración.
+Validación: 32 unitarias Angular y 14 pruebas de servidor aprobadas; ocho E2E aprobados, incluyendo login correcto/incorrecto, recarga, permiso privado y logout desde ambos hosts con credenciales temporales. Formato, UTF-8/LF, lint, ambos TypeScript y build de 495,40 kB aprobados. Dependencias sin cambios; auditoría no repetida. No se ha leído ni cambiado la contraseña del usuario ni sus datos. Se reinició la app local que ya estaba activa y se dejó disponible para reintentar el acceso.
 
-Playwright ejecuta dos escenarios en 1440 × 1000, 768 × 1024 y 390 × 844. Lee el archivo público real, sin interceptar peticiones con temporadas alternativas:
+## Validación inicial de administración — 26/10/2026
 
-- Temporada sin jornadas, participantes publicados, iniciales de nombre y apellido, administrador, ausencia de posiciones, navegación y recarga.
-- Teclado, salto al contenido, selector, ausencia de desbordamiento, tokens compartidos y axe en las pantallas cubiertas.
+Instalación limpia reproducible con Node 22.14.0 y npm 11.13.0, sin modificar npm global. `npm run check` aprobado: Prettier, UTF-8/LF, ESLint, ambos proyectos TypeScript, 29 unitarias de Angular, 11 pruebas de servidor y build. Bundle inicial final: 495,38 kB, dentro del presupuesto de 500 kB.
 
-Los flujos de comparación con jornadas pobladas ya no se ejecutan en navegador tras retirar el catálogo ficticio; sus reglas de dominio mantienen cobertura unitaria. Se ampliará la cobertura de navegador al incorporar jornadas reales. Axe no certifica conformidad WCAG ni sustituye la revisión manual.
+Las unitarias de Angular conservan la cobertura de cierre inclusivo, signos oficiales futuros, marcadores provisionales, liquidaciones administrativas, aciertos y ausencias, porcentajes, desempates, inactivos, victorias, Pleno, selección de jornada y componentes. Los dos tsconfig conservan `rootDir: "./src"`; el arreglo TS5011 del editor se verificó previamente en e1aadf5 con TypeScript 5.9.3 y 6.0.3. No se cambió la versión TypeScript de Angular.
 
-## Artefactos y limpieza
+Las pruebas de servidor cubren lectura pública, rechazo de accesos y escrituras sin sesión, credenciales incorrectas, cookies manipuladas/caducadas y rotación de secretos, origen y JSON acotado, configuración ausente, altas/bajas/reincorporaciones, protección del admin y roles, jornadas inválidas, apuestas completas/corrección, privacidad antes del cierre, resultados futuros, histórico y conflictos concurrentes. El adaptador usa el emulador oficial de Blobs para persistencia y condiciones de escritura; su GET no devuelve ETag en SDK 11.1.6 y se comprueba el fallo cerrado. Esto no verifica Netlify remoto.
 
-Playwright muestra resultados en consola. Solo los fallos generan capturas y trazas en `test-results`; el informe HTML se solicita con `npm run test:e2e -- --reporter=html`. No se guardan capturas permanentes de cada ejecución correcta.
+La prueba de namespace comprueba persistencia de producción entre deploys, aislamiento de previews por `context.deploy` del runtime y fallo cerrado sin contexto. La autenticación no requiere disponibilidad del almacenamiento.
 
-Se retiraron el catálogo demo, sus escenarios e instrucciones antiguas y los metadatos de diseño obsoletos. También se retiró la configuración de depuración de Karma: el proyecto usa Vitest y la tarea de VS Code llama a `test:watch`.
+`npm run test:e2e`: siete escenarios aprobados en Chromium. Los seis públicos cubren temporada vacía, participantes reales, iniciales, clasificación, navegación, recarga, teclado, tokens y axe a 1440/768/390 px. El séptimo recorre la administración contra la API local y almacenamiento temporal, sin interceptar peticiones: login erróneo/correcto, recarga de sesión, alta, cancelar baja, creación de jornada, carga de signos y Pleno, corrección, persistencia, baja conservando histórico, reincorporación, segundo navegador sin sesión y logout.
 
-Validación de publicación del 26/10/2026: `npm run check` aprobado (29 unitarias y build), seis escenarios E2E aprobados y `npm audit --audit-level=low` con cero vulnerabilidades. Se corrigió la lista fija del test para leer los participantes publicados, conservando la edición existente de Diego Rodriguez/DR; se evitó `import.meta` al leer JSON por la configuración de módulos del runner. Las dependencias no han cambiado.
+Tras la revisión visual se corrigieron el feedback fuera del viewport y los mensajes ajenos al cambiar de sección. La E2E administrativa se volvió a aprobar sobre el código final, comprobando foco y visibilidad de confirmaciones y de un error real 400 al guardar un formulario largo; conserva los valores introducidos. También se ajustó el rol accesible del resumen tras un hallazgo de axe. Revisión independiente: ambos hallazgos puntuados resolved, disposición ship en ese alcance.
 
-La revisión automática rechazó la eliminación de los artefactos con «blocked by policy», tanto por carpetas como por archivos individuales. Permanecen `.angular`, `dist`, `playwright-report`, `test-results` y las capturas de `.impeccable`. El borrado del catálogo de código y del archivo de metadatos sí se aplicó; no se presenta la limpieza de carpetas generadas como completada.
+Diez capturas reales en `.impeccable/review/admin-{login,empty,people,create,predictions}-{desktop,mobile}.png`, con axe sin violaciones en los estados cubiertos. Detector mecánico ejecutado una vez sin hallazgos, en modo degradado por parsers opcionales ausentes: no evalúa contraste calculado ni certifica accesibilidad.
 
-## Pendiente antes de producción
+Bundling de las dos entradas Functions con esbuild aprobado localmente. El build público no contiene el antiguo `data/season.json`, secretos administrativos ni contraseñas de pruebas. `npm audit --audit-level=low`: cero vulnerabilidades.
 
-Publicación segura en servidor, autenticación y autorización reales, contrato de datos externo, lector de pantalla, Safari/Firefox e integración real con Netlify. No se ha desplegado la app.
+## Aislamiento y límites
+
+Las pruebas usan credenciales efímeras y directorios temporales propios; no cambian los datos ni la contraseña del usuario. El seed conserva los nueve participantes y ninguna jornada; las entradas pobladas solo existen en pruebas. Los puertos locales se comprueban cerrados al finalizar.
+
+El informe HTML es opcional; las trazas de fallos quedan en `test-results`. Dependencias, build, informes, capturas, datos locales y secretos están excluidos de Git. El bloqueo histórico al limpiar artefactos de turnos anteriores permanece documentado en Cortex; esta tarea no ha intentado esa limpieza.
+
+No se han configurado secretos reales, publicado commits ni desplegado Functions/Blobs. Pendientes: configurar acceso, verificar persistencia y límite de intentos en Netlify, lector de pantalla y Safari/Firefox. No hay fuente deportiva externa ni editor de resultados oficiales. Axe no certifica conformidad WCAG.

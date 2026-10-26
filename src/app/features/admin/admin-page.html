@@ -1,0 +1,331 @@
+<mq-page-header title="Administración">
+  <span metadata>{{ auth.user()?.name }} · Temporada {{ data()?.snapshot?.season?.label }}</span>
+  <mq-button (activated)="logout()" [disabled]="busy()">Cerrar sesión</mq-button>
+</mq-page-header>
+
+<div class="admin-tabs" role="group" aria-label="Secciones de administración">
+  <mq-button [pressed]="tab() === 'predictions'" (activated)="selectTab('predictions')"
+    >Quinielas</mq-button
+  >
+  <mq-button [pressed]="tab() === 'people'" (activated)="selectTab('people')">Personas</mq-button>
+  <mq-button [pressed]="tab() === 'journeys'" (activated)="selectTab('journeys')"
+    >Jornadas</mq-button
+  >
+</div>
+<div
+  #feedback
+  class="admin-feedback-summary"
+  role="group"
+  tabindex="-1"
+  aria-label="Resultado de la operación"
+>
+  @if (error()) {
+    <div class="admin-feedback">
+      <p role="alert" class="form-error">{{ error() }}</p>
+      <mq-button (activated)="reload()" [disabled]="busy()">Recargar panel</mq-button>
+    </div>
+  }
+  <p role="status" class="admin-notice">{{ notice() }}</p>
+</div>
+@if (loading()) {
+  <mq-loading-state />
+} @else if (data(); as state) {
+  <fieldset class="admin-workspace" [disabled]="busy()" [attr.aria-busy]="busy()">
+    <legend class="sr-only">Edición del grupo</legend>
+    @switch (tab()) {
+      @case ('people') {
+        <section aria-labelledby="people-title">
+          <div class="section-heading"><h2 id="people-title">Personas del grupo</h2></div>
+          <p class="admin-help">
+            Dar de baja conserva las quinielas y la clasificación anteriores.
+          </p>
+          <ul class="admin-people">
+            @for (person of state.snapshot.participants; track person.id) {
+              <li>
+                <span class="participant-avatar" aria-hidden="true">{{ person.initials }}</span>
+                <div class="admin-person">
+                  <strong>{{ person.name }} {{ person.surname }}</strong>
+                  <span>{{
+                    person.role === 'admin'
+                      ? 'Administrador'
+                      : person.active
+                        ? 'Activo'
+                        : 'Inactivo'
+                  }}</span>
+                </div>
+                @if (person.role !== 'admin') {
+                  @if (!person.active) {
+                    <mq-button (activated)="setActive(person, true)"
+                      >Reincorporar <span class="sr-only">{{ person.name }}</span></mq-button
+                    >
+                  } @else if (removal() === person.id) {
+                    <div class="admin-actions">
+                      <mq-button variant="danger" (activated)="setActive(person, false)"
+                        >Confirmar baja <span class="sr-only">de {{ person.name }}</span></mq-button
+                      >
+                      <mq-button (activated)="removal.set('')">Cancelar</mq-button>
+                    </div>
+                  } @else {
+                    <mq-button (activated)="removal.set(person.id)"
+                      >Dar de baja <span class="sr-only">a {{ person.name }}</span></mq-button
+                    >
+                  }
+                }
+              </li>
+            }
+          </ul>
+          <form class="admin-add-person" (ngSubmit)="addPerson()">
+            <h3>Añadir persona</h3>
+            <div class="admin-fields">
+              <div class="admin-form">
+                <label for="person-name">Nombre</label
+                ><input id="person-name" name="name" required maxlength="80" [(ngModel)]="name" />
+              </div>
+              <div class="admin-form">
+                <label for="person-surname">Apellidos</label
+                ><input
+                  id="person-surname"
+                  name="surname"
+                  required
+                  maxlength="80"
+                  [(ngModel)]="surname"
+                />
+              </div>
+            </div>
+            <button
+              class="mq-button mq-button--primary"
+              type="submit"
+              [disabled]="!name.trim() || !surname.trim()"
+            >
+              Añadir al grupo
+            </button>
+          </form>
+        </section>
+      }
+      @case ('predictions') {
+        @if (!state.snapshot.journeys.length) {
+          <mq-empty-state
+            title="Crea la primera jornada"
+            message="Añade los encuentros y el cierre antes de cargar las quinielas del grupo."
+          >
+            <mq-button variant="primary" (activated)="selectTab('journeys')"
+              >Crear jornada</mq-button
+            >
+          </mq-empty-state>
+        } @else {
+          <section aria-labelledby="predictions-title">
+            <div class="section-heading"><h2 id="predictions-title">Cargar quiniela</h2></div>
+            <div class="admin-fields">
+              <div class="admin-form">
+                <label for="admin-journey">Jornada</label>
+                <select
+                  id="admin-journey"
+                  [ngModel]="journeyId()"
+                  (ngModelChange)="selectJourney($event)"
+                >
+                  @for (j of state.snapshot.journeys; track j.id) {
+                    <option [value]="j.id">
+                      Jornada {{ j.number }} ·
+                      {{ j.competition === 'league' ? 'Liga' : 'Champions / Europa League' }}
+                    </option>
+                  }
+                </select>
+              </div>
+              <div class="admin-form">
+                <label for="admin-person">Participante</label>
+                <select
+                  id="admin-person"
+                  [ngModel]="participantId()"
+                  (ngModelChange)="selectParticipant($event)"
+                >
+                  @for (person of people(); track person.id) {
+                    <option [value]="person.id">
+                      {{ person.name }} {{ person.surname }}{{ person.active ? '' : ' (inactivo)' }}
+                    </option>
+                  }
+                </select>
+              </div>
+            </div>
+            @if (journey(); as j) {
+              <p class="admin-help">
+                Los pronósticos solo serán públicos después del cierre de la jornada.
+              </p>
+              @if (existing()) {
+                <p class="admin-help">
+                  Esta persona ya tiene quiniela. Al actualizar se sustituirán sus pronósticos de
+                  esta jornada.
+                </p>
+              }
+              <div class="admin-paste admin-form">
+                <label for="paste-signs">Pegar los 14 signos (opcional)</label>
+                <div class="admin-actions">
+                  <input
+                    id="paste-signs"
+                    [(ngModel)]="pasted"
+                    maxlength="100"
+                    placeholder="1 X 2…"
+                  />
+                  <mq-button (activated)="pasteSigns()">Aplicar signos</mq-button>
+                </div>
+              </div>
+              <form (ngSubmit)="savePredictions()">
+                <div class="admin-predictions">
+                  @for (fixture of j.fixtures; track fixture.id; let i = $index) {
+                    <fieldset class="prediction-editor">
+                      <legend>{{ fixture.number }}. {{ fixture.home }} · {{ fixture.away }}</legend>
+                      <div class="sign-options">
+                        @for (sign of signs; track sign) {
+                          <label
+                            ><input
+                              type="radio"
+                              [name]="'sign-' + i"
+                              [value]="sign"
+                              [(ngModel)]="predictions[i]"
+                              required
+                            /><span>{{ sign }}</span></label
+                          >
+                        }
+                      </div>
+                    </fieldset>
+                  }
+                </div>
+                <fieldset class="admin-pleno">
+                  <legend>
+                    Pleno al 15 · {{ j.pleno.fixture.home }} · {{ j.pleno.fixture.away }}
+                  </legend>
+                  <div class="admin-fields">
+                    <div class="admin-form">
+                      <label for="pleno-home">Goles del local</label
+                      ><select id="pleno-home" name="pleno-home" required [(ngModel)]="plenoHome">
+                        <option value="" disabled>Seleccionar</option>
+                        @for (goal of goals; track goal) {
+                          <option [value]="goal">{{ goal }}</option>
+                        }
+                      </select>
+                    </div>
+                    <div class="admin-form">
+                      <label for="pleno-away">Goles del visitante</label
+                      ><select id="pleno-away" name="pleno-away" required [(ngModel)]="plenoAway">
+                        <option value="" disabled>Seleccionar</option>
+                        @for (goal of goals; track goal) {
+                          <option [value]="goal">{{ goal }}</option>
+                        }
+                      </select>
+                    </div>
+                  </div>
+                </fieldset>
+                <button class="mq-button mq-button--primary" type="submit">
+                  {{
+                    busy() ? 'Guardando…' : existing() ? 'Actualizar quiniela' : 'Guardar quiniela'
+                  }}
+                </button>
+              </form>
+            }
+          </section>
+        }
+      }
+      @case ('journeys') {
+        <section aria-labelledby="journeys-title">
+          <div class="section-heading"><h2 id="journeys-title">Jornadas de la temporada</h2></div>
+          @if (state.snapshot.journeys.length) {
+            <div class="admin-form admin-current">
+              <label for="current-journey">Jornada actual</label>
+              <select
+                id="current-journey"
+                [ngModel]="state.snapshot.currentJourneyId ?? ''"
+                (ngModelChange)="setCurrent($event || null)"
+              >
+                <option value="">Sin jornada actual</option>
+                @for (j of state.snapshot.journeys; track j.id) {
+                  <option [value]="j.id">
+                    Jornada {{ j.number }} ·
+                    {{ j.competition === 'league' ? 'Liga' : 'Champions / Europa League' }}
+                  </option>
+                }
+              </select>
+            </div>
+          }
+          <form class="admin-form admin-create-journey" (ngSubmit)="createJourney()">
+            <h3>Crear jornada</h3>
+            <p class="admin-help">
+              Introduce los encuentros reales. Las fechas usan la zona horaria de este dispositivo.
+            </p>
+            <div class="admin-fields">
+              <div class="admin-form">
+                <label for="journey-number">Número de jornada</label
+                ><input
+                  id="journey-number"
+                  name="number"
+                  type="number"
+                  required
+                  min="1"
+                  max="999"
+                  [(ngModel)]="number"
+                />
+              </div>
+              <div class="admin-form">
+                <label for="competition">Competición</label
+                ><select id="competition" name="competition" [(ngModel)]="competition">
+                  <option value="league">Liga</option>
+                  <option value="europe">Champions / Europa League</option>
+                </select>
+              </div>
+              <div class="admin-form">
+                <label for="closes-at">Cierre de apuestas</label
+                ><input
+                  id="closes-at"
+                  name="closesAt"
+                  type="datetime-local"
+                  required
+                  [(ngModel)]="closesAt"
+                />
+              </div>
+            </div>
+            <div class="admin-fixtures">
+              @for (fixture of fixtures; track $index; let i = $index) {
+                <fieldset class="fixture-editor">
+                  <legend>{{ i === 14 ? 'Pleno al 15' : 'Encuentro ' + (i + 1) }}</legend>
+                  <div class="admin-fields">
+                    <div class="admin-form">
+                      <label [for]="'home-' + i">Local</label
+                      ><input
+                        [id]="'home-' + i"
+                        [name]="'home-' + i"
+                        required
+                        maxlength="80"
+                        [(ngModel)]="fixture.home"
+                      />
+                    </div>
+                    <div class="admin-form">
+                      <label [for]="'away-' + i">Visitante</label
+                      ><input
+                        [id]="'away-' + i"
+                        [name]="'away-' + i"
+                        required
+                        maxlength="80"
+                        [(ngModel)]="fixture.away"
+                      />
+                    </div>
+                    <div class="admin-form">
+                      <label [for]="'kickoff-' + i">Fecha y hora</label
+                      ><input
+                        [id]="'kickoff-' + i"
+                        [name]="'kickoff-' + i"
+                        type="datetime-local"
+                        required
+                        [(ngModel)]="fixture.kickoff"
+                      />
+                    </div>
+                  </div>
+                </fieldset>
+              }
+            </div>
+            <button class="mq-button mq-button--primary" type="submit">
+              {{ busy() ? 'Guardando…' : 'Crear jornada' }}
+            </button>
+          </form>
+        </section>
+      }
+    }
+  </fieldset>
+}

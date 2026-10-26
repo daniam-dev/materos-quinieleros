@@ -13,6 +13,7 @@ import { QuinielaStore } from './core/data/quiniela-store';
 import { MqButton } from './shared/ui/button';
 import { MqLoadingState } from './shared/ui/loading-state';
 import { MqEmptyState } from './shared/ui/empty-state';
+import { AuthService } from './core/auth/auth-service';
 @Component({
   selector: 'mq-root',
   imports: [RouterOutlet, RouterLink, RouterLinkActive, MqButton, MqLoadingState, MqEmptyState],
@@ -31,13 +32,18 @@ import { MqEmptyState } from './shared/ui/empty-state';
           ><a routerLink="/clasificacion" routerLinkActive="active" ariaCurrentWhenActive="page"
             >Clasificación</a
           >
+          @if (auth.isAdmin()) {
+            <a routerLink="/administracion" routerLinkActive="active" ariaCurrentWhenActive="page"
+              >Administración</a
+            >
+          }
         </nav>
       </div>
     </header>
     <main id="main-content" class="page-container" tabindex="-1">
-      @if (store.isLoading()) {
+      @if (store.isLoading() && !store.snapshot()) {
         <mq-loading-state />
-      } @else if (store.hasError()) {
+      } @else if (store.hasError() && !store.snapshot()) {
         <mq-empty-state
           title="No hemos podido cargar las quinielas"
           message="Vuelve a intentarlo para recuperar la temporada."
@@ -49,10 +55,13 @@ import { MqEmptyState } from './shared/ui/empty-state';
     </main>
     <footer class="site-footer">
       <span>Materos Quinieleros</span>
-      <span>Jornadas y clasificación</span>
+      @if (!auth.isAdmin()) {
+        <a routerLink="/acceso">Acceder</a>
+      }
     </footer>`,
 })
 export class App {
+  readonly auth = inject(AuthService);
   readonly store = inject(QuinielaStore);
   constructor() {
     const document = inject(DOCUMENT);

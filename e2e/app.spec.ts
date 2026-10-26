@@ -3,10 +3,7 @@ import AxeBuilder from '@axe-core/playwright';
 import { readFileSync } from 'node:fs';
 import type { SeasonSnapshot } from '../src/app/domain/models';
 
-const season = JSON.parse(readFileSync('public/data/season.json', 'utf8')) as Omit<
-  SeasonSnapshot,
-  'asOf'
->;
+const season = JSON.parse(readFileSync('server/seed.json', 'utf8')) as Omit<SeasonSnapshot, 'asOf'>;
 
 async function noOverflow(page: Page) {
   await expect
