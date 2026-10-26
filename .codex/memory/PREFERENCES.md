@@ -8,3 +8,7 @@
 - No afirmar pruebas aprobadas sin ejecutarlas; usar Playwright y capturas reales con revisión visual.
 
 - Usar siempre Conventional Commits, solicitado explícitamente al autorizar la publicación inicial en GitHub el 2026-10-25.
+
+## Tono de interfaz — 2026-10-26
+
+El usuario solicita textos directos y descriptivos, evitando un tono cozy o sentimental. Se retiran los lemas del header/footer y se usa «Comparativa de pronósticos» con una descripción funcional. Se mantiene la identidad visual existente.

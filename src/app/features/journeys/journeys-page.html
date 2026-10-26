@@ -1,23 +1,26 @@
-@if (journey(); as current) {
-  <mq-page-header [title]="'Jornada ' + current.number">
-    <div metadata class="metadata-items">
-      <span class="metadata-season">Temporada {{ store.snapshot()?.season?.label }}</span
-      ><span>{{ dateLabel() }}</span
-      ><span class="meta-separator" aria-hidden="true">/</span
-      ><span>{{ participants().length }} participantes</span>
-    </div>
-    <label class="sr-only" for="journey-select">Seleccionar jornada</label
-    ><p-select
-      inputId="journey-select"
-      ariaLabel="Seleccionar jornada"
-      [pt]="{ dropdown: { 'aria-label': 'Abrir jornadas' } }"
-      [options]="options()"
-      optionLabel="label"
-      optionValue="id"
-      [ngModel]="current.id"
-      (ngModelChange)="selectJourney($event)"
-      appendTo="body"
-    />
+<mq-page-header [title]="journey() ? 'Jornada ' + journey()?.number : 'Jornada actual'">
+  <div metadata class="metadata-items">
+    <span class="metadata-season">Temporada {{ store.snapshot()?.season?.label }}</span>
+    @if (journey(); as current) {
+      <span>{{ competitionLabels[current.competition] }}</span>
+      <span>{{ dateLabel() }}</span>
+      <span class="meta-separator" aria-hidden="true">/</span>
+      <span>{{ participants().length }} participantes</span>
+    }
+  </div>
+  <label class="sr-only" for="journey-select">Seleccionar jornada</label
+  ><p-select
+    inputId="journey-select"
+    ariaLabel="Seleccionar jornada"
+    [pt]="{ dropdown: { 'aria-label': 'Abrir jornadas' } }"
+    [options]="options()"
+    optionLabel="label"
+    optionValue="id"
+    [ngModel]="selectedId()"
+    (ngModelChange)="selectJourney($event)"
+    appendTo="body"
+  />
+  @if (journey()) {
     <mq-status-indicator [state]="state()" />
     <div class="results-progress">
       <div>
@@ -29,14 +32,16 @@
         aria-label="Resultados oficiales publicados"
       ></progress>
     </div>
-  </mq-page-header>
+  }
+</mq-page-header>
 
+@if (journey(); as current) {
   @if (published()) {
     <section class="comparison-section" aria-labelledby="comparison-title">
       <div class="comparison-toolbar">
         <div>
-          <h2 id="comparison-title">La quiniela, en compañía.</h2>
-          <p class="muted">Cada pronóstico cuenta su historia.</p>
+          <h2 id="comparison-title">Comparativa de pronósticos</h2>
+          <p class="muted">Apuestas y resultados oficiales de los 14 encuentros.</p>
         </div>
         <div class="filter-group" role="group" aria-label="Filtrar encuentros">
           @for (item of filters; track item.value) {
@@ -137,7 +142,7 @@
   } @else {
     <mq-card
       ><mq-empty-state
-        title="Cada uno guarda sus cartas."
+        title="Pronósticos pendientes de publicación"
         [message]="
           'Los pronósticos se publicarán después del cierre: ' +
           closeLabel() +
@@ -168,7 +173,7 @@
       </p>
     </section>
   }
-  <mq-dialog title="Los resultados, sin letra pequeña" [(visible)]="rulesVisible"
+  <mq-dialog title="Cálculo de aciertos" [(visible)]="rulesVisible"
     ><p>
       Solo un <strong>signo oficial publicado</strong> convierte un pronóstico en acierto o fallo.
       Un marcador en juego o un partido finalizado sin signo oficial sigue pendiente.
@@ -187,4 +192,16 @@
       adjudican al liquidar los 14 signos y se comparten si hay empate en aciertos.
     </p></mq-dialog
   >
+} @else {
+  <mq-card>
+    <mq-empty-state
+      title="No hay jornada actual"
+      message="La próxima jornada aparecerá aquí cuando el administrador la añada. Jugamos jornadas de Liga y de Champions / Europa League."
+    >
+      @if (journeys().length) {
+        <p class="muted">Puedes consultar las jornadas anteriores desde el selector.</p>
+      }
+      <a class="text-link" routerLink="/clasificacion">Ver clasificación de temporada</a>
+    </mq-empty-state>
+  </mq-card>
 }

@@ -1,0 +1,79 @@
+{
+  "season": { "id": "2026-27", "label": "2026 / 27" },
+  "currentJourneyId": null,
+  "participants": [
+    {
+      "id": "daniel-arroyo",
+      "name": "Daniel",
+      "surname": "Arroyo",
+      "initials": "DA",
+      "active": true,
+      "role": "admin"
+    },
+    {
+      "id": "lucas-calvo",
+      "name": "Lucas",
+      "surname": "Calvo",
+      "initials": "LC",
+      "active": true,
+      "role": "participant"
+    },
+    {
+      "id": "alejandro-mayo",
+      "name": "Alejandro",
+      "surname": "Mayo",
+      "initials": "AM",
+      "active": true,
+      "role": "participant"
+    },
+    {
+      "id": "diego-curieses",
+      "name": "Diego",
+      "surname": "Rodriguez",
+      "initials": "DR",
+      "active": true,
+      "role": "participant"
+    },
+    {
+      "id": "javier-hernandez",
+      "name": "Javier",
+      "surname": "Hernandez",
+      "initials": "JH",
+      "active": true,
+      "role": "participant"
+    },
+    {
+      "id": "julien-rodriguez",
+      "name": "Julien",
+      "surname": "Rodriguez",
+      "initials": "JR",
+      "active": true,
+      "role": "participant"
+    },
+    {
+      "id": "roman-sanchez",
+      "name": "Roman",
+      "surname": "Sanchez",
+      "initials": "RS",
+      "active": true,
+      "role": "participant"
+    },
+    {
+      "id": "sergio-toribio",
+      "name": "Sergio",
+      "surname": "Toribio",
+      "initials": "ST",
+      "active": true,
+      "role": "participant"
+    },
+    {
+      "id": "antonio-garre",
+      "name": "Antonio",
+      "surname": "Garre",
+      "initials": "AG",
+      "active": true,
+      "role": "participant"
+    }
+  ],
+  "journeys": []
+}

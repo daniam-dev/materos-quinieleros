@@ -4,7 +4,7 @@
 
 ```text
 src/app/
-  core/data/             Contrato, adaptador mock y estado de carga
+  core/data/             Contrato, adaptador de archivo público y estado
   core/theme/            Preset PrimeNG y traducciones
   domain/                Modelos inmutables y funciones puras
   features/journeys/     Jornada, matriz y Pleno al 15
@@ -16,7 +16,9 @@ e2e/                     Flujos reales, accesibilidad y capturas
 
 La aplicación usa componentes standalone con OnPush, rutas cargadas bajo demanda y Angular Signals. Angular 21 funciona sin Zone.js en esta configuración. `computed` deriva jornada, filtros, celdas y clasificación. Ninguna tarjeta contiene estadísticas precalculadas.
 
-`QuinielaRepository` define `loadSeason(): Promise<SeasonSnapshot>`. El token de inyección `QUINIELA_REPOSITORY` desacopla interfaz y datos. `MockQuinielaRepository` devuelve una copia independiente de la muestra; `QuinielaStore` expone señales de datos, carga y error, e incluye reintento. Sustituir el proveedor permitirá integrar un adaptador HTTP sin modificar la presentación.
+`QuinielaRepository` define `loadSeason(): Promise<SeasonSnapshot>`. El token de inyección `QUINIELA_REPOSITORY` desacopla interfaz y datos. `FileQuinielaRepository` lee `public/data/season.json` por HTTP y añade el instante de lectura como `asOf`; `QuinielaStore` expone señales de datos, carga y error, e incluye reintento. Sustituir el proveedor permitirá integrar el servidor sin modificar la presentación.
+
+La temporada arranca sin jornadas y con nueve participantes reales. `currentJourneyId` asigna la jornada actual explícitamente y admite `null`; nunca se usa la primera jornada como sustituto. El histórico se ordena por fecha descendente y distingue `league` (Liga) de `europe` (boletos de Champions / Europa League), incluso con el mismo número. Los identificadores deben ser únicos dentro de la temporada. [Carga manual](datos.md).
 
 ## Cálculos
 
@@ -31,26 +33,15 @@ La aplicación usa componentes standalone con OnPush, rutas cargadas bajo demand
 - Una jornada participada es la inscripción explícita en `participantIds`, aunque aún no haya resultados o falte algún pronóstico. Solo las jornadas publicadas de la temporada contribuyen al histórico público.
 - La actividad actual del participante no filtra sus registros históricos. Una inscripción histórica se mantiene tras la desactivación.
 
-## Escenarios de demostración
+## Pruebas
 
-El reloj está fijado al 25 de octubre de 2026 a las 17:00, hora peninsular. No depende de la fecha del ordenador, para reproducir las pruebas.
-
-| Jornada | Estado                                | Signos oficiales | Participantes |
-| ------- | ------------------------------------- | ---------------- | ------------- |
-| 13      | Abierta hasta el 31 de octubre, 14:00 | 0                | 8             |
-| 12      | Cerrada, resultados parciales         | 8                | 9             |
-| 11      | Finalizada                            | 14               | 8             |
-| 10      | Cerrada, sin publicación oficial      | 0                | 8             |
-
-Nico está inactivo y conserva las jornadas 11 y 12. Álex no participó en la 11. En la 12 falta el pronóstico de Nico para el encuentro 8. Lucía tiene 7/8, Dani 6/8 y Pablo 5/8; Sara también tiene 5/8 y se ordena después de Pablo por nombre. Todos estos valores se obtienen del dominio.
-
-La jornada 10 representa encuentros finalizados cuyos signos todavía no se han publicado. Los datos son ficticios; los equipos no representan un calendario real de SELAE.
+Las pruebas unitarias definen sus entradas mínimas dentro de cada archivo `.spec.ts`, sin un catálogo de participantes o jornadas de demostración compartido. Cubren las reglas de publicación, resultados oficiales, clasificación, Pleno y selección de jornada. Playwright comprueba la temporada pública real, la navegación, las iniciales, el teclado y la accesibilidad en escritorio, tablet y móvil. El alcance actual está en [Verificación](verificacion.md).
 
 ## Frontera de privacidad
 
 La comparación, el Pleno y el Top 3 no se renderizan antes de `closesAt`. Las funciones de evaluación devuelven `hidden`, y la clasificación excluye esas jornadas. El cierre se evalúa como un instante ISO con zona horaria explícita, inclusive en el instante exacto.
 
-**Esta simulación no es una medida de seguridad.** El paquete JavaScript contiene los mocks completos, incluso las apuestas de la jornada abierta. No introducir aquí pronósticos reales. El servidor futuro debe decidir el cierre con su propio reloj y devolver un DTO público sin pronósticos ocultos ni datos derivados que permitan reconstruirlos. Los guards de Angular no resuelven esa obligación.
+**La ocultación visual no es una medida de seguridad.** El archivo de temporada es público, por lo que solo puede contener pronósticos reales después del cierre. El servidor futuro debe decidir el cierre con su propio reloj y devolver un DTO público sin pronósticos ocultos ni datos derivados que permitan reconstruirlos. Los guards de Angular no resuelven esa obligación.
 
 ## Próxima integración
 

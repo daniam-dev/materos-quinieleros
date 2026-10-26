@@ -1,6 +1,6 @@
 # Materos Quinieleros
 
-Frontend de La Quiniela entre amigos. Jornadas y Clasificación con diseño editorial oscuro, datos ficticios coherentes y cálculos de dominio reales. SPA Angular, sin SSR ni backend.
+Frontend de La Quiniela del grupo Materos Quinieleros. Jornadas y Clasificación con diseño editorial oscuro y cálculos de dominio. SPA Angular, sin SSR ni backend. Arranca con los nueve participantes del grupo y sin jornadas cargadas.
 
 ## Ejecutar
 
@@ -17,10 +17,10 @@ Abre `http://localhost:4200`. Con npm 11.13.0 ya disponible, basta con `npm ci`.
 
 - Jornadas: matriz de 14 encuentros por participantes registrados, signos oficiales, marcadores, estados y filtros.
 - Escritorio con nueve participantes; móvil y tablet con selector individual y comparación horizontal con encuentros fijos.
-- Selector de cuatro jornadas: abierta, cerrada sin resultados, parcial y finalizada.
+- Selector con «Jornada actual» e histórico de jornadas de Liga y Champions / Europa League. La actual se asigna expresamente; no se deduce por número o fecha.
 - Top 3 calculado y Pleno al 15 independiente.
 - Clasificación de temporada con participación real, aciertos, evaluables, porcentajes y victorias compartidas cuando corresponde.
-- Histórico de participantes inactivos y distinción de apuestas ausentes.
+- Nueve participantes reales, iniciales de nombre y apellido y Daniel Arroyo identificado como administrador en los datos. Histórico de inactivos y distinción de apuestas ausentes.
 - Sistema de diseño centralizado con Tailwind CSS 4, preset PrimeNG styled mode, Manrope e Inter locales.
 - Componentes compartidos de botones, superficies, encabezados, estados, badges, diálogo y pronósticos.
 - Estados de carga, error con reintento, filtros vacíos y ruta desconocida.
@@ -36,7 +36,7 @@ Angular 22 es la última línea estable, pero PrimeNG 22 requiere una clave Prim
 
 `domain` contiene modelos y reglas puras; `core/data` separa el contrato del repositorio, los mocks y el estado; `features` organiza Jornadas y Clasificación; `shared/ui` contiene la biblioteca visual. Las rutas se cargan bajo demanda.
 
-El proveedor `QUINIELA_REPOSITORY` permite sustituir los mocks por un adaptador HTTP. [Arquitectura, cálculos y frontera de privacidad](docs/arquitectura.md).
+El proveedor `QUINIELA_REPOSITORY` carga el archivo público `public/data/season.json`. Ahí se mantienen por ahora los participantes, las jornadas y `currentJourneyId` (inicialmente `null`). [Cómo cargar jornadas](docs/datos.md). [Arquitectura, cálculos y frontera de privacidad](docs/arquitectura.md).
 
 Los valores visuales viven en `src/styles/tokens.css`; PrimeNG referencia esas mismas variables. Cambiar `--radius-control` de `0.75rem` a `0.5rem` cambia botones, navegación y selectores sin editar las pantallas. Playwright verifica ese comportamiento. [Sistema de diseño](DESIGN.md).
 
@@ -51,14 +51,7 @@ npm run format        # Aplicar Prettier
 npm audit
 ```
 
-Playwright inicia el servidor local si no está disponible. Genera el informe en `playwright-report/index.html` y conserva trazas de fallos en `test-results`. Las capturas reales se guardan en `.impeccable/review/`:
-
-- `desktop.png`, `tablet.png`, `mobile.png`: jornada parcial.
-- `desktop-leaderboard.png`, `tablet-leaderboard.png`, `mobile-leaderboard.png`: clasificación.
-- `desktop-open.png`, `tablet-open.png`, `mobile-open.png`: privacidad antes del cierre.
-- `tablet-comparison.png`, `mobile-comparison.png`: comparación global desplazada.
-
-Las capturas se regeneran al ejecutar E2E y están excluidas de Git. [Revisión y alcance de las pruebas](docs/verificacion.md).
+Playwright inicia el servidor local si no está disponible y comprueba la app con su archivo público real. Muestra el resultado en consola y conserva capturas y trazas únicamente ante fallos en `test-results`. Puedes generar un informe HTML expresamente con `npm run test:e2e -- --reporter=html`. [Alcance de las pruebas](docs/verificacion.md).
 
 ## Build y Netlify
 
@@ -70,8 +63,8 @@ Salida: `dist/materos-quinieleros/browser`. `netlify.toml` configura el build, l
 
 ## Límites y siguiente fase
 
-**Los mocks incluyen datos ocultos en el bundle. La privacidad de esta fase solo simula la interfaz.** No introducir apuestas reales hasta implementar en servidor el cierre y la proyección pública sin pronósticos ocultos.
+**El archivo de temporada es público.** Solo debe contener información que ya pueda publicarse. La ocultación visual antes del cierre no protege los datos del archivo: no introducir apuestas reales previas al cierre hasta implementar en servidor la proyección pública.
 
-No hay autenticación, panel administrativo, persistencia, Functions, Blobs ni resultados externos. Tampoco se añaden Chart.js o un sistema de puntos: aquí no aportan valor.
+No hay autenticación, panel administrativo, persistencia de cambios desde la web, Functions, Blobs ni resultados externos. El rol de administrador es un dato descriptivo, sin permisos efectivos hasta incorporar el servidor. Tampoco se añaden Chart.js o un sistema de puntos: aquí no aportan valor.
 
 Siguiente fase: contrato público/privado y autorización del servidor, después persistencia y administración. La actualización Angular/PrimeNG 22 requiere resolver primero la licencia y el runtime. Las pruebas actuales cubren Chromium; una revisión con lectores de pantalla y Safari/Firefox queda pendiente antes de producción.

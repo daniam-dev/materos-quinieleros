@@ -33,9 +33,9 @@ import { Pleno } from './pleno';
 })
 export class JourneysPage {
   readonly store = inject(QuinielaStore);
-  readonly selectedId = signal('j12');
+  readonly selectedId = signal('current');
   readonly filter = signal<FixtureFilter>('all');
-  readonly participantId = signal('dani');
+  readonly participantId = signal('daniel-arroyo');
   readonly globalView = signal(false);
   readonly rulesVisible = signal(false);
   readonly filters: readonly { value: FixtureFilter; label: string }[] = [
@@ -43,16 +43,24 @@ export class JourneysPage {
     { value: 'resolved', label: 'Resueltos' },
     { value: 'pending', label: 'Pendientes' },
   ];
-  readonly journey = computed(
-    () =>
-      this.store.snapshot()?.journeys.find((j) => j.id === this.selectedId()) ??
-      this.store.snapshot()?.journeys[0],
+  readonly competitionLabels = { league: 'Liga', europe: 'Champions / Europa League' } as const;
+  readonly journeys = computed(() =>
+    (this.store.snapshot()?.journeys ?? [])
+      .filter((j) => j.seasonId === this.store.snapshot()?.season.id)
+      .sort((a, b) => Date.parse(b.startsAt) - Date.parse(a.startsAt) || b.number - a.number),
   );
-  readonly options = computed(
-    () =>
-      this.store.snapshot()?.journeys.map((j) => ({ id: j.id, label: `Jornada ${j.number}` })) ??
-      [],
-  );
+  readonly journey = computed(() => {
+    const id =
+      this.selectedId() === 'current' ? this.store.snapshot()?.currentJourneyId : this.selectedId();
+    return this.journeys().find((j) => j.id === id);
+  });
+  readonly options = computed(() => [
+    { id: 'current', label: 'Jornada actual' },
+    ...this.journeys().map((j) => ({
+      id: j.id,
+      label: `Jornada ${j.number} · ${this.competitionLabels[j.competition]}`,
+    })),
+  ]);
   readonly participants = computed(
     () =>
       this.store

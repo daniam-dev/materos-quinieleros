@@ -1,16 +1,18 @@
 import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
+import { provideHttpClient } from '@angular/common/http';
 import { provideRouter, withInMemoryScrolling } from '@angular/router';
 
 import { routes } from './app.routes';
 import { providePrimeNG } from 'primeng/config';
 import { MaterosPreset } from './core/theme/materos-preset';
 import { QUINIELA_REPOSITORY } from './core/data/quiniela-repository';
-import { MockQuinielaRepository } from './core/data/mock-quiniela-repository';
+import { FileQuinielaRepository } from './core/data/file-quiniela-repository';
 import { ES_TRANSLATION } from './core/theme/es-translation';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
+    provideHttpClient(),
     provideRouter(
       routes,
       withInMemoryScrolling({ scrollPositionRestoration: 'enabled', anchorScrolling: 'enabled' }),
@@ -25,6 +27,6 @@ export const appConfig: ApplicationConfig = {
         },
       },
     }),
-    { provide: QUINIELA_REPOSITORY, useClass: MockQuinielaRepository },
+    { provide: QUINIELA_REPOSITORY, useClass: FileQuinielaRepository },
   ],
 };

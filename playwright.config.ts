@@ -5,7 +5,7 @@ export default defineConfig({
   fullyParallel: true,
   workers: 3,
   retries: 0,
-  reporter: [['list'], ['html', { open: 'never' }]],
+  reporter: 'list',
   use: {
     baseURL: 'http://127.0.0.1:4200',
     browserName: 'chromium',

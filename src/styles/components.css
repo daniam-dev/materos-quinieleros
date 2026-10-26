@@ -111,6 +111,11 @@
     align-items: flex-end;
     flex-direction: column;
     gap: var(--space-5);
+    min-width: 0;
+    max-width: 100%;
+  }
+  .page-heading-actions .p-select {
+    max-width: 100%;
   }
   .section-heading {
     display: flex;
@@ -218,6 +223,10 @@
   }
   .p-select-option {
     min-height: var(--control-height);
+    white-space: normal;
+  }
+  .p-select-overlay {
+    max-width: calc(100vw - var(--gutter) * 2);
   }
   .p-select-overlay,
   .p-dialog {

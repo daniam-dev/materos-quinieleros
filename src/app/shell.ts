@@ -32,7 +32,6 @@ import { MqEmptyState } from './shared/ui/empty-state';
             >Clasificación</a
           >
         </nav>
-        <span class="club-caption">Entre amigos.<br />Desde el primer signo.</span>
       </div>
     </header>
     <main id="main-content" class="page-container" tabindex="-1">
@@ -49,11 +48,8 @@ import { MqEmptyState } from './shared/ui/empty-state';
       }
     </main>
     <footer class="site-footer">
-      <span>Una quiniela. Muchas maneras de verla.</span
-      ><span
-        >Materos Quinieleros <span aria-hidden="true">·</span>
-        <strong>Datos de demostración</strong></span
-      >
+      <span>Materos Quinieleros</span>
+      <span>Jornadas y clasificación</span>
     </footer>`,
 })
 export class App {

@@ -44,8 +44,7 @@ __screenshots__/
 Thumbs.db
 /playwright-report/
 /test-results/
-/.impeccable/review/
-/.impeccable/mocks/
+/.impeccable/
 # Project Cortex private data
 /.codex/memory/journal/
 /.codex/cortex/local/

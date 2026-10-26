@@ -1,5 +1,4 @@
-import { DEMO_SNAPSHOT } from '../core/data/demo-data';
-import { Journey, SeasonSnapshot } from './models';
+import { Fixture, Journey, Participant, SeasonSnapshot } from './models';
 import {
   compareRanking,
   evaluatePleno,
@@ -12,195 +11,239 @@ import {
   seasonRanking,
 } from './scoring';
 
-const snapshot = DEMO_SNAPSHOT;
-const asOf = snapshot.asOf;
-function journey(id = 'j12'): Journey {
-  const value = snapshot.journeys.find((j) => j.id === id);
-  if (!value) throw new Error(`Missing test fixture ${id}`);
-  return value;
+const before = '2026-01-01T11:00:00Z';
+const now = '2026-01-01T12:00:00Z';
+const after = '2026-01-01T13:00:00Z';
+const participant: Participant = {
+  id: 'a',
+  name: 'A',
+  surname: '',
+  initials: 'A',
+  active: true,
+  role: 'participant',
+};
+const fixture: Fixture = {
+  id: 'fixture',
+  number: 1,
+  home: '',
+  away: '',
+  kickoff: before,
+  status: 'finished',
+};
+const prediction = { participantId: participant.id, fixtureId: fixture.id, sign: '1' as const };
+const result = {
+  fixtureId: fixture.id,
+  sign: '1' as const,
+  source: 'sporting' as const,
+  publishedAt: before,
+};
+
+// Cada caso aporta solo las entradas necesarias para la regla, sin catálogo de demostración.
+function journey(overrides: Partial<Journey> = {}): Journey {
+  return {
+    id: 'journey',
+    seasonId: 'season',
+    number: 1,
+    competition: 'league',
+    startsAt: before,
+    endsAt: after,
+    closesAt: before,
+    participantIds: [participant.id],
+    fixtures: [fixture],
+    predictions: [prediction],
+    officialResults: [result],
+    pleno: { fixture: { ...fixture, id: 'pleno', number: 15 }, predictions: [] },
+    ...overrides,
+  };
 }
+function snapshot(
+  journeys: readonly Journey[] = [journey()],
+  participants: readonly Participant[] = [participant],
+): SeasonSnapshot {
+  return {
+    season: { id: 'season', label: '' },
+    currentJourneyId: null,
+    journeys,
+    participants,
+    asOf: now,
+  };
+}
+function settled(): Journey {
+  const fixtures = Array.from({ length: 14 }, (_, i) => ({
+    ...fixture,
+    id: String(i),
+    number: i + 1,
+  }));
+  return journey({
+    fixtures,
+    predictions: fixtures.map((f) => ({ ...prediction, fixtureId: f.id })),
+    officialResults: fixtures.map((f) => ({ ...result, fixtureId: f.id })),
+  });
+}
+
 describe('Publicación y resultados oficiales', () => {
   it('distingue abierta, cerrada, parcial y finalizada', () => {
-    expect(journeyState(journey('j13'), asOf)).toBe('open');
-    expect(journeyState(journey('j10'), asOf)).toBe('closed');
-    expect(journeyState(journey(), asOf)).toBe('partial');
-    expect(journeyState(journey('j11'), asOf)).toBe('complete');
+    expect(journeyState(journey({ closesAt: after }), now)).toBe('open');
+    expect(journeyState(journey({ officialResults: [] }), now)).toBe('closed');
+    expect(journeyState(journey(), now)).toBe('partial');
+    expect(journeyState(settled(), now)).toBe('complete');
   });
   it('publica en el instante exacto del cierre', () => {
-    const j = journey('j13');
-    expect(isPublished(j, new Date(Date.parse(j.closesAt) - 1).toISOString())).toBe(false);
-    expect(isPublished(j, j.closesAt)).toBe(true);
+    expect(isPublished(journey({ closesAt: now }), before)).toBe(false);
+    expect(isPublished(journey({ closesAt: now }), now)).toBe(true);
   });
   it('oculta pronósticos y rankings de jornadas abiertas', () => {
-    const j = journey('j13');
-    expect(evaluatePrediction(j, j.predictions[0], asOf)).toBe('hidden');
-    expect(evaluatePleno(j, j.pleno.predictions[0], asOf)).toBe('hidden');
-    expect(journeyRanking(j, snapshot.participants, asOf)).toEqual([]);
+    const j = journey({ closesAt: after });
+    expect(evaluatePrediction(j, prediction, now)).toBe('hidden');
+    expect(evaluatePleno(j, { participantId: 'a', home: '0', away: '0' }, now)).toBe('hidden');
+    expect(journeyRanking(j, [participant], now)).toEqual([]);
   });
   it('no usa resultados oficiales publicados en el futuro', () => {
-    expect(publishedResults(journey(), '2026-10-25T10:00:00Z')).toHaveLength(0);
+    expect(
+      publishedResults(journey({ officialResults: [{ ...result, publishedAt: after }] }), now),
+    ).toEqual([]);
   });
   it('un marcador en juego no determina el acierto', () => {
-    const j = journey();
-    expect(j.fixtures[8].score).toEqual({ home: 1, away: 0 });
-    expect(
-      evaluatePrediction(
-        j,
-        j.predictions.find((p) => p.fixtureId === 'j12-9'),
-        asOf,
-      ),
-    ).toBe('pending');
+    const j = journey({
+      fixtures: [{ ...fixture, status: 'live', score: { home: 1, away: 0 } }],
+      officialResults: [],
+    });
+    expect(evaluatePrediction(j, prediction, now)).toBe('pending');
   });
   it('un partido finalizado sin signo oficial sigue pendiente', () => {
-    const j = journey('j10');
-    expect(j.fixtures[0].status).toBe('finished');
-    expect(evaluatePrediction(j, j.predictions[0], asOf)).toBe('pending');
+    expect(evaluatePrediction(journey({ officialResults: [] }), prediction, now)).toBe('pending');
   });
   it('evalúa aciertos, fallos y ausencias', () => {
-    const j = journey();
-    expect(
-      evaluatePrediction(j, { participantId: 'dani', fixtureId: 'j12-1', sign: '1' }, asOf),
-    ).toBe('hit');
-    expect(
-      evaluatePrediction(j, { participantId: 'dani', fixtureId: 'j12-1', sign: '2' }, asOf),
-    ).toBe('miss');
-    expect(evaluatePrediction(j, undefined, asOf)).toBe('missing');
+    expect(evaluatePrediction(journey(), prediction, now)).toBe('hit');
+    expect(evaluatePrediction(journey(), { ...prediction, sign: '2' }, now)).toBe('miss');
+    expect(evaluatePrediction(journey(), undefined, now)).toBe('missing');
   });
   it('la X administrativa cuenta sin inventar un empate deportivo', () => {
-    const j = journey();
-    expect(j.fixtures[7].score).toBeUndefined();
-    expect(j.officialResults[7].source).toBe('administrative');
-    expect(
-      evaluatePrediction(j, { participantId: 'dani', fixtureId: 'j12-8', sign: 'X' }, asOf),
-    ).toBe('hit');
+    const j = journey({ officialResults: [{ ...result, sign: 'X', source: 'administrative' }] });
+    expect(j.fixtures[0].score).toBeUndefined();
+    expect(evaluatePrediction(j, { ...prediction, sign: 'X' }, now)).toBe('hit');
   });
 });
+
 describe('Clasificación', () => {
-  it('calcula los ocho resultados parciales y el Top 3', () => {
-    const rows = journeyRanking(journey(), snapshot.participants, asOf);
-    expect(rows.slice(0, 3).map((r) => [r.participant.name, r.hits, r.evaluable])).toEqual([
-      ['Lucía', 7, 8],
-      ['Dani', 6, 8],
-      ['Pablo', 5, 8],
+  it('ordena por aciertos y calcula el porcentaje de los signos oficiales', () => {
+    const second = { ...participant, id: 'b', name: 'B' };
+    const j = journey({
+      participantIds: ['a', 'b'],
+      predictions: [prediction, { ...prediction, participantId: 'b', sign: '2' }],
+    });
+    expect(
+      journeyRanking(j, [second, participant], now).map((r) => [
+        r.participant.id,
+        r.hits,
+        r.evaluable,
+        r.percentage,
+      ]),
+    ).toEqual([
+      ['a', 1, 1, 100],
+      ['b', 0, 1, 0],
     ]);
-    expect(rows[0].percentage).toBe(87.5);
   });
   it('excluye apuestas ausentes del denominador y mantiene inactivos', () => {
-    const nico = journeyRanking(journey(), snapshot.participants, asOf).find(
-      (r) => r.participant.id === 'nico',
-    );
-    expect(nico?.evaluable).toBe(7);
-    expect(nico?.participant.active).toBe(false);
+    const row = journeyRanking(
+      journey({ predictions: [] }),
+      [{ ...participant, active: false }],
+      now,
+    )[0];
+    expect(row.evaluable).toBe(0);
+    expect(row.percentage).toBeNull();
+    expect(row.participant.active).toBe(false);
   });
   it('muestra ausencia de datos cuando no hay evaluables', () => {
     expect(percentage(0, 0)).toBeNull();
     expect(percentage(0, 8)).toBe(0);
     expect(percentage(6, 8)).toBe(75);
   });
-  it('suma participaciones reales, excluye abiertas y conserva inactivos', () => {
-    const rows = seasonRanking(snapshot);
-    expect(rows.find((r) => r.participant.id === 'alex')?.played).toBe(2);
-    expect(rows.find((r) => r.participant.id === 'dani')?.played).toBe(3);
-    expect(rows.find((r) => r.participant.id === 'nico')?.played).toBe(2);
-    expect(rows.find((r) => r.participant.id === 'lucia')?.evaluable).toBe(22);
+  it('suma inscripciones, excluye abiertas y conserva inactivos', () => {
+    const data = snapshot(
+      [
+        journey(),
+        journey({ id: 'second', predictions: [] }),
+        journey({ id: 'unregistered', participantIds: [], predictions: [] }),
+        journey({ id: 'open', closesAt: after }),
+      ],
+      [{ ...participant, active: false }],
+    );
+    const row = seasonRanking(data)[0];
+    expect(row.played).toBe(2);
+    expect(row.evaluable).toBe(1);
+    expect(row.hits).toBe(1);
+    expect(row.participant.active).toBe(false);
   });
-  it('desempata por porcentaje, nombre e identificador sin mutar la entrada', () => {
-    const a = journeyRanking(journey(), snapshot.participants, asOf)[0];
-    expect(compareRanking({ ...a, percentage: 90 }, a)).toBeLessThan(0);
+  it('desempata por porcentaje, nombre e identificador sin mutar las inscripciones', () => {
+    const j = journey();
+    const row = journeyRanking(j, [participant], now)[0];
+    expect(compareRanking({ ...row, percentage: 90 }, row)).toBeGreaterThan(0);
     expect(
-      compareRanking({ ...a, participant: { ...a.participant, name: 'Ana' } }, a),
+      compareRanking(row, { ...row, participant: { ...participant, name: 'B' } }),
     ).toBeLessThan(0);
-    expect(compareRanking({ ...a, participant: { ...a.participant, id: 'aaa' } }, a)).toBeLessThan(
+    expect(compareRanking(row, { ...row, participant: { ...participant, id: 'b' } })).toBeLessThan(
       0,
     );
-    expect(journey().participantIds[0]).toBe('dani');
+    expect(j.participantIds).toEqual(['a']);
   });
   it('no concede victorias por resultados parciales', () => {
-    expect(seasonRanking({ ...snapshot, journeys: [journey()] }).every((r) => r.wins === 0)).toBe(
-      true,
-    );
+    expect(seasonRanking(snapshot())[0].wins).toBe(0);
   });
   it('comparte la victoria al empatar en aciertos en una jornada liquidada', () => {
-    const j = journey('j11');
-    const tied: Journey = {
+    const j = settled();
+    const second = { ...participant, id: 'b', name: 'B' };
+    const tied = {
       ...j,
-      participantIds: ['dani', 'lucia'],
-      predictions: j.officialResults.flatMap((result) =>
-        ['dani', 'lucia'].map((participantId) => ({
-          participantId,
-          fixtureId: result.fixtureId,
-          sign: result.sign,
-        })),
-      ),
+      participantIds: ['a', 'b'],
+      predictions: j.predictions.flatMap((p) => [p, { ...p, participantId: 'b' }]),
     };
-    const data: SeasonSnapshot = { ...snapshot, journeys: [tied] };
-    expect(
-      seasonRanking(data)
-        .filter((r) => r.wins === 1)
-        .map((r) => r.participant.id),
-    ).toEqual(['dani', 'lucia']);
+    expect(seasonRanking(snapshot([tied], [participant, second])).map((r) => r.wins)).toEqual([
+      1, 1,
+    ]);
   });
   it('ignora jornadas de otra temporada', () => {
-    expect(
-      seasonRanking({ ...snapshot, journeys: [{ ...journey(), seasonId: 'old' }] }).every(
-        (r) => r.evaluable === 0,
-      ),
-    ).toBe(true);
+    expect(seasonRanking(snapshot([journey({ seasonId: 'old' })]))[0].evaluable).toBe(0);
   });
-  it('no revela la jornada abierta al variar todos sus pronósticos', () => {
-    const altered = {
-      ...snapshot,
-      journeys: snapshot.journeys.map((j) => (j.id === 'j13' ? { ...j, predictions: [] } : j)),
-    };
-    expect(seasonRanking(altered)).toEqual(seasonRanking(snapshot));
+  it('no revela la jornada abierta al variar sus pronósticos', () => {
+    expect(seasonRanking(snapshot([journey({ closesAt: after })]))).toEqual(
+      seasonRanking(snapshot([journey({ closesAt: after, predictions: [] })])),
+    );
+  });
+  it('no asigna resultados ni porcentajes cuando la temporada no tiene jornadas', () => {
+    expect(seasonRanking(snapshot([]))[0]).toMatchObject({
+      played: 0,
+      hits: 0,
+      evaluable: 0,
+      percentage: null,
+      wins: 0,
+    });
   });
 });
+
 describe('Pleno al 15', () => {
+  function withPleno(publishedAt = before): Journey {
+    const j = journey();
+    return { ...j, pleno: { ...j.pleno, official: { home: 'M', away: '1', publishedAt } } };
+  }
   it('exige acertar los dos valores y admite M', () => {
-    const j = journey('j11');
-    expect(evaluatePleno(j, { participantId: 'dani', home: 'M', away: '1' }, asOf)).toBe('hit');
-    expect(evaluatePleno(j, { participantId: 'dani', home: '2', away: '1' }, asOf)).toBe('miss');
-    expect(evaluatePleno(j, undefined, asOf)).toBe('missing');
-    expect(evaluatePleno(journey(), journey().pleno.predictions[0], asOf)).toBe('pending');
+    expect(evaluatePleno(withPleno(), { participantId: 'a', home: 'M', away: '1' }, now)).toBe(
+      'hit',
+    );
+    expect(evaluatePleno(withPleno(), { participantId: 'a', home: '2', away: '1' }, now)).toBe(
+      'miss',
+    );
+    expect(evaluatePleno(withPleno(), undefined, now)).toBe('missing');
+    expect(evaluatePleno(journey(), { participantId: 'a', home: 'M', away: '1' }, now)).toBe(
+      'pending',
+    );
   });
   it('no evalúa un pleno oficial futuro', () => {
-    const j = journey('j11');
-    expect(evaluatePleno(j, j.pleno.predictions[0], '2026-10-18T15:00:00Z')).toBe('pending');
+    expect(evaluatePleno(withPleno(after), { participantId: 'a', home: 'M', away: '1' }, now)).toBe(
+      'pending',
+    );
   });
   it('no altera la clasificación de los primeros 14', () => {
-    const withoutPleno = {
-      ...snapshot,
-      journeys: snapshot.journeys.map((j) => ({
-        ...j,
-        pleno: { fixture: j.pleno.fixture, predictions: [] },
-      })),
-    };
-    expect(seasonRanking(withoutPleno)).toEqual(seasonRanking(snapshot));
-  });
-});
-describe('Integridad de los mocks', () => {
-  it('tiene nueve personas, 14 partidos y referencias únicas y válidas', () => {
-    expect(snapshot.participants).toHaveLength(9);
-    for (const j of snapshot.journeys) {
-      expect(j.fixtures).toHaveLength(14);
-      expect(new Set(j.predictions.map((p) => `${p.fixtureId}:${p.participantId}`)).size).toBe(
-        j.predictions.length,
-      );
-      expect(new Set(j.officialResults.map((r) => r.fixtureId)).size).toBe(
-        j.officialResults.length,
-      );
-      for (const prediction of j.predictions) {
-        expect(j.participantIds).toContain(prediction.participantId);
-        expect(j.fixtures.some((f) => f.id === prediction.fixtureId)).toBe(true);
-      }
-      for (const result of j.officialResults.filter((r) => r.source === 'sporting')) {
-        const score = j.fixtures.find((f) => f.id === result.fixtureId)?.score;
-        expect(score).toBeDefined();
-        if (score)
-          expect(result.sign).toBe(
-            score.home > score.away ? '1' : score.home < score.away ? '2' : 'X',
-          );
-      }
-    }
+    expect(seasonRanking(snapshot([withPleno()]))).toEqual(seasonRanking(snapshot()));
   });
 });

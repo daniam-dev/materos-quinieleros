@@ -1,7 +1,7 @@
-<mq-page-header title="La constancia tiene premio."
+<mq-page-header title="Clasificación de temporada"
   ><div metadata class="metadata-items">
     <span class="metadata-season">Temporada {{ store.snapshot()?.season?.label }}</span
-    ><span>Todos los aciertos. Toda la temporada.</span>
+    ><span>Aciertos acumulados en Liga y Champions / Europa League</span>
   </div>
   <mq-badge>Clasificación general</mq-badge
   ><a routerLink="/jornadas" class="text-link">Volver a la jornada</a></mq-page-header
@@ -11,6 +11,12 @@
     <h2 id="ranking-title">Clasificación</h2>
     <p class="muted">{{ rows().length }} participantes · Solo resultados oficiales</p>
   </div>
+  @if (!store.snapshot()?.journeys?.length) {
+    <p class="ranking-notice muted">
+      Todavía no hay jornadas cargadas. Los participantes se muestran por orden alfabético, sin
+      posiciones asignadas.
+    </p>
+  }
   @if (rows().length) {
     <div
       class="ranking-scroll"
@@ -36,13 +42,19 @@
         <tbody>
           @for (row of rows(); track row.participant.id; let index = $index) {
             <tr>
-              <td class="ranking-index">{{ (index + 1).toString().padStart(2, '0') }}</td>
+              <td class="ranking-index">
+                {{ row.evaluable ? (index + 1).toString().padStart(2, '0') : '—' }}
+              </td>
               <th scope="row" class="ranking-name">
                 <span class="participant-avatar" aria-hidden="true">{{
                   row.participant.initials
                 }}</span
                 ><span
                   >{{ row.participant.name }}
+                  <span class="participant-surname">{{ row.participant.surname }}</span>
+                  @if (row.participant.role === 'admin') {
+                    <span class="inactive-label">Administrador</span>
+                  }
                   @if (!row.participant.active) {
                     <span class="inactive-label">Inactivo</span>
                   }

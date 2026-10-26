@@ -3,8 +3,10 @@ export type GoalPrediction = '0' | '1' | '2' | 'M';
 export interface Participant {
   readonly id: string;
   readonly name: string;
+  readonly surname: string;
   readonly initials: string;
   readonly active: boolean;
+  readonly role: 'admin' | 'participant';
 }
 export interface Season {
   readonly id: string;
@@ -41,6 +43,7 @@ export interface Journey {
   readonly id: string;
   readonly seasonId: string;
   readonly number: number;
+  readonly competition: 'league' | 'europe';
   readonly startsAt: string;
   readonly endsAt: string;
   readonly closesAt: string;
@@ -62,6 +65,8 @@ export interface SeasonSnapshot {
   readonly season: Season;
   readonly participants: readonly Participant[];
   readonly journeys: readonly Journey[];
-  /** Reloj congelado de la demostración; el servidor controlará la publicación real. */
+  /** Selección explícita; null hasta que el administrador publique una jornada actual. */
+  readonly currentJourneyId: string | null;
+  /** Instante de lectura; el servidor controlará la publicación real. */
   readonly asOf: string;
 }
