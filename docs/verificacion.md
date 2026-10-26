@@ -21,7 +21,7 @@ Playwright muestra resultados en consola. Solo los fallos generan capturas y tra
 
 Se retiraron el catálogo demo, sus escenarios e instrucciones antiguas y los metadatos de diseño obsoletos. También se retiró la configuración de depuración de Karma: el proyecto usa Vitest y la tarea de VS Code llama a `test:watch`.
 
-Validación ejecutada: `npm run check` aprobado (29 unitarias y build) y seis escenarios E2E aprobados. Se corrigió la lista fija del test para leer los participantes publicados, conservando la edición existente de Diego Rodriguez/DR; se evitó `import.meta` al leer JSON por la configuración de módulos del runner. Las dependencias no han cambiado; no se repite la auditoría npm.
+Validación de publicación del 26/10/2026: `npm run check` aprobado (29 unitarias y build), seis escenarios E2E aprobados y `npm audit --audit-level=low` con cero vulnerabilidades. Se corrigió la lista fija del test para leer los participantes publicados, conservando la edición existente de Diego Rodriguez/DR; se evitó `import.meta` al leer JSON por la configuración de módulos del runner. Las dependencias no han cambiado.
 
 La revisión automática rechazó la eliminación de los artefactos con «blocked by policy», tanto por carpetas como por archivos individuales. Permanecen `.angular`, `dist`, `playwright-report`, `test-results` y las capturas de `.impeccable`. El borrado del catálogo de código y del archivo de metadatos sí se aplicó; no se presenta la limpieza de carpetas generadas como completada.
 

@@ -1,5 +1,13 @@
 # Estado actual
 
+## 2026-10-26 — TS5011 corregido y cambios publicados
+
+El usuario autorizó subir todos los cambios con Conventional Commits. Publicados en origin/main: df81e58 (feat: prepare real season and remove demo data) y e1aadf5 (fix: declare explicit TypeScript source roots). Verificados después del push: HEAD, origin/main y ls-remote coinciden en e1aadf5b0a7887d27eae968833943a3eca36677b; árboles coinciden en 0c783efb6d5da87ff1b32dadbc0f458df3735ad9; conector GitHub confirma el commit y los dos rootDir. El registro de cierre y la validación actualizada se preparan después en un commit de documentación.
+
+TS5011 reproducido con TypeScript 6.0.3 del editor y de Angular Language Service, aunque el CLI 5.9.3 no fallaba. Ambos tsconfig fijan ahora rootDir ./src. Diagnósticos de configuración y semántica: cero para app y spec con ambas versiones; no se actualiza TypeScript de Angular ni se ocultan diagnósticos. Aprendizaje en LEARNINGS.
+
+Validación de este turno: npm run check aprobado (formato, texto UTF-8/LF, lint, ambos TypeScript, 29 unitarias y build), seis E2E aprobados en tres tamaños y npm audit --audit-level=low con cero vulnerabilidades. Artefactos, dependencias y datos privados de Cortex excluidos del árbol publicado. No se ha desplegado la app. Sigue documentado el bloqueo previo al borrar carpetas generadas; no se ha reintentado en este turno.
+
 ## 2026-10-26 — Limpieza de datos demo y residuos
 
 Solicitud explícita de retirar datos demo y archivos sin utilidad. Eliminados el catálogo compartido de demostración y los metadatos de diseño obsoletos; retiradas sus dependencias en tests y documentación. Las 29 unitarias mantienen las reglas con entradas mínimas dentro de cada spec. E2E queda en seis escenarios sobre el archivo público real, sin interceptar temporadas ficticias; ya no prueba en navegador flujos con jornadas pobladas. Se conserva la edición existente de Diego Rodriguez/DR en los datos públicos; no es una decisión nueva del agente. Se corrigieron los tests con lista de nombres fija y el uso de import.meta incompatible con el runner. Depuración Karma retirada y tarea VS Code corregida a test:watch.
