@@ -1,47 +1,30 @@
-# Verificación de la Fase 1
+# Verificación
 
-## Evidencia funcional
+## Suite actual
 
-La suite unitaria usa Vitest a través del builder de Angular. Cubre aciertos y fallos, denominadores, ausencia de datos, desempates, inactivos, participaciones reales, resultados futuros, marcadores provisionales, partidos finalizados sin signo oficial, liquidación administrativa, Pleno, cierre inclusivo y no filtración de estadísticas de jornadas abiertas. También cubre botones y textos accesibles de pronósticos, integridad de datos y reintento del repositorio.
+`npm run check` ejecuta formato, UTF-8 sin BOM/LF/salto final, lint, TypeScript de aplicación y pruebas, Vitest y build de producción.
 
-Playwright ejecuta dos escenarios completos en cada viewport: 1440 × 1000, 768 × 1024 y 390 × 844. Usa Chromium real en modo headless, sin mocks de navegador.
+`tsconfig.app.json` y `tsconfig.spec.json` fijan `rootDir: "./src"`. Se reprodujo TS5011 con TypeScript 6.0.3 del editor antes del cambio y se verificaron ambos proyectos sin ese diagnóstico después; la compilación de Angular mantiene TypeScript 5.9.3 del lockfile. La raíz explícita evita depender de la inferencia de directorios de cada versión.
 
-- Navegación de rutas y recarga directa de Clasificación.
-- Selección de jornadas, estados abierta/cerrada/parcial/finalizada y filtros de 8 resueltos / 6 pendientes.
-- Selección de Lucía, sus celdas visibles y comparación de nueve participantes.
-- Desplazamiento horizontal con encuentros fijos y al menos dos columnas completas de participantes visibles en móvil.
-- Ausencia de desbordamiento horizontal del documento.
-- Pronósticos y rankings ausentes del DOM antes del cierre.
-- Pleno oficial independiente y permanencia de Nico inactivo en la clasificación.
-- Diálogo de reglas, cierre con Escape y navegación de selectores por teclado.
-- Radio global 12 → 8 px en botones, navegación y PrimeNG sin cambiar componentes.
-- Sin errores JavaScript no controlados.
-- Axe con etiquetas WCAG 2 A/AA, 2.1 AA y 2.2 AA en jornada parcial, abierta, diálogo y clasificación.
+Las 29 pruebas unitarias comprueban las reglas con entradas mínimas locales a cada `.spec.ts`: publicación y cierre inclusivo, signos oficiales futuros, marcadores provisionales, liquidación administrativa, aciertos y ausencias, denominadores, desempates, inactivos, inscripciones, victorias compartidas, Pleno independiente, selección de jornada, componentes y reintento de carga. No dependen de un catálogo de demostración.
 
-Los análisis automáticos no constituyen una certificación WCAG ni sustituyen lectores de pantalla, navegación asistida y pruebas con usuarios.
+Playwright ejecuta dos escenarios en 1440 × 1000, 768 × 1024 y 390 × 844. Lee el archivo público real, sin interceptar peticiones con temporadas alternativas:
 
-Resultado ejecutado el 25/10/2026: **25 pruebas unitarias y 6 escenarios E2E aprobados**. Lint, TypeScript y build de producción aprobados. Bundle inicial: aproximadamente 473 kB (transferencia estimada 110 kB), dentro del presupuesto de 500 kB. Auditoría npm: cero vulnerabilidades.
+- Temporada sin jornadas, participantes publicados, iniciales de nombre y apellido, administrador, ausencia de posiciones, navegación y recarga.
+- Teclado, salto al contenido, selector, ausencia de desbordamiento, tokens compartidos y axe en las pantallas cubiertas.
 
-## Revisión visual Impeccable
+Los flujos de comparación con jornadas pobladas ya no se ejecutan en navegador tras retirar el catálogo ficticio; sus reglas de dominio mantienen cobertura unitaria. Se ampliará la cobertura de navegador al incorporar jornadas reales. Axe no certifica conformidad WCAG ni sustituye la revisión manual.
 
-Se aplicó la skill local `C:/Users/dania/.codex/skills/impeccable/SKILL.md`: contexto, new-work y craft-floor. La dirección explícita del usuario prevaleció sobre el sorteo de concepto (`97b01b09`, 25/10/2026); se construyó directamente desde el brief, sin una imagen de referencia aprobada.
+## Artefactos y limpieza
 
-Se inspeccionaron capturas de escritorio, tablet y móvil, incluyendo las vistas abiertas, globales y de clasificación. Un reviewer independiente examinó las capturas principales y solicitó tres correcciones: temporada integrada bajo el título, retirada de flechas Unicode y aumento a 12 px de los estados pequeños. El verdict posterior fue **ship para esas tres correcciones**, no una nueva certificación completa de todos los estados.
+Playwright muestra resultados en consola. Solo los fallos generan capturas y trazas en `test-results`; el informe HTML se solicita con `npm run test:e2e -- --reporter=html`. No se guardan capturas permanentes de cada ejecución correcta.
 
-El detector Impeccable se ejecutó una vez. Devolvió una lista vacía en **modo degradado** por ausencia de sus parsers opcionales; no evaluó contraste calculado ni selectores. El contraste automático se comprobó con axe en el navegador, además de la revisión visual. No se presenta la salida vacía del detector como una revisión completa.
+Se retiraron el catálogo demo, sus escenarios e instrucciones antiguas y los metadatos de diseño obsoletos. También se retiró la configuración de depuración de Karma: el proyecto usa Vitest y la tarea de VS Code llama a `test:watch`.
 
-Durante E2E se corrigieron etiquetas de selectores, posicionamiento de textos `sr-only` que desbordaban en tablet, foco/scroll al navegar y anchura de la columna fija en la comparación global móvil. Los tests esperan el cierre real de los desplegables y no usan pausas arbitrarias.
+Validación ejecutada: `npm run check` aprobado (29 unitarias y build) y seis escenarios E2E aprobados. Se corrigió la lista fija del test para leer los participantes publicados, conservando la edición existente de Diego Rodriguez/DR; se evitó `import.meta` al leer JSON por la configuración de módulos del runner. Las dependencias no han cambiado; no se repite la auditoría npm.
 
-El paso delegado de documentación no llegó a completarse; `DESIGN.md` y su sidecar se elaboraron directamente a partir del código y de las capturas revisadas.
-
-## Archivos y ejecución
-
-Las capturas están en `.impeccable/review/`; el informe navegable está en `playwright-report/index.html`. Son artefactos locales regenerables, no imágenes ilustrativas generadas.
-
-`npm run check` ejecuta Prettier, verificación UTF-8 sin BOM/LF/salto final, ESLint con reglas Angular y accesibilidad de plantillas, TypeScript de aplicación y pruebas, Vitest y build de producción con presupuestos de bundle.
-
-`npm audit` comprueba las dependencias instaladas, incluidas las herramientas de desarrollo. Los resultados finales ejecutados se detallan en la entrega; ningún check omitido se considera aprobado.
+La revisión automática rechazó la eliminación de los artefactos con «blocked by policy», tanto por carpetas como por archivos individuales. Permanecen `.angular`, `dist`, `playwright-report`, `test-results` y las capturas de `.impeccable`. El borrado del catálogo de código y del archivo de metadatos sí se aplicó; no se presenta la limpieza de carpetas generadas como completada.
 
 ## Pendiente antes de producción
 
-Seguridad de publicación en servidor; autenticación y autorización reales; revisión de contrato de datos externo; pruebas de accesibilidad manual con lector de pantalla; Safari y Firefox; integración real con Netlify. No se ha desplegado esta fase.
+Publicación segura en servidor, autenticación y autorización reales, contrato de datos externo, lector de pantalla, Safari/Firefox e integración real con Netlify. No se ha desplegado la app.
