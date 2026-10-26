@@ -25,3 +25,9 @@ Orden del ranking: aciertos, porcentaje, nombre español e id. Las jornadas gana
 ## Retirada del catálogo demo — 2026-10-26
 
 El usuario solicita borrar los datos de demostración restantes y residuos sin utilidad. Sustituye la conservación previa del catálogo para pruebas: se elimina del proyecto, conservando solo entradas mínimas locales a las pruebas unitarias de las reglas. El navegador verifica el archivo público real; los seis escenarios actuales no cubren comparativas pobladas. Se mantienen las dependencias y herramientas necesarias para desarrollar y validar. La limpieza de artefactos generados no pudo aplicarse por rechazo de la revisión automática; estado preciso en CURRENT y docs/verificacion.md.
+
+## Administración autorizada — 2026-10-26
+
+El usuario encarga administración exclusiva de su cuenta (Daniel Arroyo), carga de quinielas de los demás y altas/bajas del grupo. Sustituye la restricción inicial de mantener Administración fuera de la fase frontend; no autoriza contratar servicios ni desplegar. La consulta del resto sigue sin registro, coherente con PRODUCT.md. La baja se implementa como inactividad reversible para conservar el histórico, conforme a la decisión previa.
+
+Elecciones de implementación, no preferencias adicionales atribuidas al usuario: acceso único daniel-arroyo con contraseña configurada fuera de Git, autorización en API y cookie firmada; Functions/Blobs siguiendo la arquitectura prevista. Creación de jornadas y asignación de actual permiten cargar apuestas desde una temporada vacía. El seed deja de ser público; proyección pública filtrada por reloj de servidor y copia privada exclusiva. Correcciones de quinielas permitidas también tras el cierre, con efecto público; no se implementa todavía un editor de resultados. Contrato y límites en docs/administracion.md y docs/datos.md.
