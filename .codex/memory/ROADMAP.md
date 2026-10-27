@@ -8,8 +8,12 @@ Revisar confianza del proyecto y hooks con /hooks, reiniciar sesión y comprobar
 
 Implementados contratos público/privado, autorización de Daniel, API Functions, adaptador Blobs, panel de jornadas/quinielas/personas y bajas con histórico. Ver CURRENT y docs/administracion.md. El acceso local ya está configurado y la API confirma su disponibilidad; no se han leído los secretos del usuario. No se ha desplegado; antes de activar en Netlify hay que configurar secretos y verificar persistencia, permisos y límite de intentos reales.
 
+## Automatización encargada el 26/10/2026
+
+Implementada y validada localmente el 27/10. Sustituye la propuesta de integración deportiva posterior a un editor manual. Pendientes de configuración y verificación real en Netlify documentados en docs/sincronizacion.md y docs/verificacion.md; el despliegue queda fuera del encargo. Ver CURRENT para evidencia.
+
 ## Propuestas futuras; no comenzar sin encargo
 
-1. Editor de resultados oficiales y, después, integración con una fuente deportiva y trazabilidad completa de correcciones.
+1. Trazabilidad exhaustiva de correcciones y posibles herramientas técnicas para incidencias; no se ha encargado un editor manual de resultados.
 2. Revisar migración Angular/PrimeNG 22 con licencia legítima y runtime compatible.
 3. Antes de producción: lector de pantalla y Safari/Firefox, además de verificación remota de Functions/Blobs.
