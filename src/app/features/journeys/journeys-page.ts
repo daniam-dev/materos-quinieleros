@@ -43,11 +43,15 @@ export class JourneysPage {
     { value: 'resolved', label: 'Resueltos' },
     { value: 'pending', label: 'Pendientes' },
   ];
-  readonly competitionLabels = { league: 'Liga', europe: 'Champions / Europa League' } as const;
+  readonly competitionLabels = {
+    league: 'Liga',
+    europe: 'Champions / Europa League',
+    mixed: 'Boleto SELAE',
+  } as const;
   readonly journeys = computed(() =>
-    (this.store.snapshot()?.journeys ?? [])
-      .filter((j) => j.seasonId === this.store.snapshot()?.season.id)
-      .sort((a, b) => Date.parse(b.startsAt) - Date.parse(a.startsAt) || b.number - a.number),
+    [...(this.store.snapshot()?.journeys ?? [])].sort(
+      (a, b) => Date.parse(b.startsAt) - Date.parse(a.startsAt) || b.number - a.number,
+    ),
   );
   readonly journey = computed(() => {
     const id =
@@ -58,7 +62,7 @@ export class JourneysPage {
     { id: 'current', label: 'Jornada actual' },
     ...this.journeys().map((j) => ({
       id: j.id,
-      label: `Jornada ${j.number} · ${this.competitionLabels[j.competition]}`,
+      label: `Jornada ${j.number} · ${this.competitionLabels[j.competition]} · ${j.seasonId}`,
     })),
   ]);
   readonly participants = computed(
@@ -104,7 +108,7 @@ export class JourneysPage {
   });
   readonly closeLabel = computed(() => {
     const j = this.journey();
-    return j
+    return j?.closesAt
       ? new Intl.DateTimeFormat('es', {
           day: 'numeric',
           month: 'long',
@@ -112,7 +116,7 @@ export class JourneysPage {
           minute: '2-digit',
           timeZone: 'Europe/Madrid',
         }).format(new Date(j.closesAt))
-      : '';
+      : 'Pendiente de horarios oficiales';
   });
   selectJourney(id: string): void {
     this.selectedId.set(id);

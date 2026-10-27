@@ -145,7 +145,7 @@
   }
   .prediction-editor legend {
     float: left;
-    width: calc(100% - 170px);
+    width: calc(100% - 330px);
     padding: var(--space-3) var(--space-4) var(--space-3) 0;
   }
   .sign-options {
@@ -181,6 +181,34 @@
     outline: 2px solid var(--color-accent);
     outline-offset: 3px;
   }
+  .sign-options input:disabled + span {
+    opacity: var(--disabled-opacity);
+    cursor: not-allowed;
+  }
+  .completion-list {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+    gap: var(--space-3) var(--space-6);
+    margin-block: var(--space-6);
+    font-size: var(--text-sm);
+  }
+  .completion-list li {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-3);
+  }
+  .completion-list strong {
+    color: var(--color-muted);
+    font-weight: 400;
+  }
+  .sync-summary {
+    margin-block: var(--space-6);
+  }
+  .sync-summary p {
+    margin-bottom: var(--space-3);
+  }
   .admin-pleno {
     border: 0;
     padding: var(--space-6) 0;
@@ -210,7 +238,7 @@
     border-top: var(--border-width) solid var(--color-line);
     min-width: 0;
   }
-  @media (max-width: 600px) {
+  @media (max-width: 760px) {
     .admin-people .admin-actions {
       flex-basis: 100%;
     }

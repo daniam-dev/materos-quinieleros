@@ -16,7 +16,7 @@ Un grupo de amigos consulta y compara sus quinielas semanales sin registrarse. D
 
 ## Capacidades y restricciones
 
-Jornadas y Clasificación con nueve participantes reales y sin jornadas iniciales. Consulta pública por API, jornada actual explícita e histórico de Liga y Champions / Europa League. Administración exclusiva de Daniel: altas, bajas y reincorporaciones, creación de jornadas y carga/corrección de quinielas ajenas. Autorización en servidor y pronósticos privados hasta el cierre. Solo los signos oficiales determinan aciertos; Pleno separado. Los inactivos conservan su histórico. Secretos fuera del repositorio. Sin editor de resultados oficiales, integraciones deportivas ni despliegue verificado.
+Jornadas y Clasificación con los nueve participantes reales. Importación automática de SELAE, jornada actual determinista e histórico conservado. Administración exclusiva de Daniel: altas/bajas/reincorporaciones y carga/corrección de quinielas ajenas, hasta dos dobles por persona y Pleno separado. Autorización en servidor y privacidad antes del cierre. OddsPapi aporta marcadores provisionales con presupuesto persistente; solo signos SELAE confirman aciertos históricos. Fuentes consultadas centralmente, sin gasto por visitante. Sin editor manual de resultados, premios económicos ni un sistema nuevo de puntos. No hay despliegue ni cobertura autenticada verificados.
 
 ## Compromisos de marca
 
@@ -30,4 +30,4 @@ Objetivo WCAG 2.2 AA, teclado, foco visible, estados con texto o iconos además 
 
 ## Evidencia
 
-Los nombres de los nueve participantes proceden del usuario. No hay encuentros ni resultados cargados ni fuentes oficiales conectadas. Las pruebas unitarias usan entradas mínimas para verificar las reglas; no se mantiene un catálogo de demostración.
+Los nombres de los nueve participantes proceden del usuario y se conservan. Los proveedores están probados con simulaciones y muestras públicas SELAE de las jornadas 16 y 17. No se han usado claves reales de OddsPapi ni modificado datos locales del usuario. Los encuentros simulados están aislados en pruebas y no se incorporan al seed.

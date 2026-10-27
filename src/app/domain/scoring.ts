@@ -1,6 +1,7 @@
 import { Journey, Participant, PlenoPrediction, Prediction, SeasonSnapshot } from './models';
 
-export type PredictionState = 'hit' | 'miss' | 'pending' | 'missing' | 'hidden';
+export type PredictionState =
+  'hit' | 'miss' | 'provisional-hit' | 'provisional-miss' | 'pending' | 'missing' | 'hidden';
 export type JourneyState = 'open' | 'closed' | 'partial' | 'complete';
 export interface RankingEntry {
   readonly participant: Participant;
@@ -11,7 +12,7 @@ export interface RankingEntry {
   readonly wins: number;
 }
 export function isPublished(journey: Journey, asOf: string): boolean {
-  return Date.parse(asOf) >= Date.parse(journey.closesAt);
+  return Date.parse(asOf) >= Date.parse(journey.closesAt ?? '');
 }
 export function publishedResults(journey: Journey, asOf: string) {
   return journey.officialResults.filter(
@@ -34,7 +35,21 @@ export function evaluatePrediction(
     (result) => result.fixtureId === prediction.fixtureId,
   );
   if (!official) return 'pending';
-  return official.sign === prediction.sign ? 'hit' : 'miss';
+  return prediction.sign.includes(official.sign) ? 'hit' : 'miss';
+}
+/** Display only: historical ranking always calls evaluatePrediction instead. */
+export function displayPrediction(
+  journey: Journey,
+  prediction: Prediction | undefined,
+  asOf: string,
+): PredictionState {
+  const confirmed = evaluatePrediction(journey, prediction, asOf);
+  if (confirmed !== 'pending' || !prediction) return confirmed;
+  const fixture = journey.fixtures.find((f) => f.id === prediction.fixtureId);
+  const score = fixture?.score;
+  if (!score || !fixture?.scoreScope) return confirmed;
+  const sign = score.home > score.away ? '1' : score.home < score.away ? '2' : 'X';
+  return prediction.sign.includes(sign) ? 'provisional-hit' : 'provisional-miss';
 }
 export function percentage(hits: number, evaluable: number): number | null {
   return evaluable === 0 ? null : (hits / evaluable) * 100;

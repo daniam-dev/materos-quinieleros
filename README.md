@@ -2,6 +2,12 @@
 
 Aplicación de La Quiniela del grupo Materos Quinieleros. SPA Angular con API para Netlify Functions, administración privada y almacenamiento persistente. Arranca con los nueve participantes del grupo y sin jornadas cargadas.
 
+## Cómo funciona
+
+Tras la configuración inicial en Netlify, la aplicación importa jornadas de SELAE y actualiza resultados automáticamente. Daniel selecciona una jornada importada, carga los pronósticos de los participantes y guarda. Antes del cierre permanecen privados; después, el grupo consulta la comparativa y la clasificación sin registrarse. Los marcadores OddsPapi son provisionales y SELAE confirma los resultados que cuentan.
+
+[Flujo completo de la aplicación](docs/flujo.md): preparación inicial, tarea habitual, cierre, resultados, actualización de las pantallas e incidencias. La automatización está implementada localmente; su puesta en servicio y verificación remota siguen pendientes.
+
 ## Ejecutar
 
 Requisitos verificados: Node **22.14.0** y npm **11.13.0**. `.nvmrc` fija el runtime. Si tienes otra versión de npm, puedes ejecutar la instalación indicada sin modificar tu npm global:
@@ -19,11 +25,12 @@ Para activar tu acceso local, ejecuta `npm run admin:setup` en una terminal. Pid
 
 - Jornadas: matriz de 14 encuentros por participantes registrados, signos oficiales, marcadores, estados y filtros.
 - Escritorio con nueve participantes; móvil y tablet con selector individual y comparación horizontal con encuentros fijos.
-- Selector con «Jornada actual» e histórico de jornadas de Liga y Champions / Europa League. La actual se asigna expresamente; no se deduce por número o fecha.
+- Selector con «Jornada actual» automática e histórico de temporadas. Mantiene la jornada en juego al publicarse la siguiente.
 - Top 3 calculado y Pleno al 15 independiente.
 - Clasificación de temporada con participación real, aciertos, evaluables, porcentajes y victorias compartidas cuando corresponde.
 - Nueve participantes reales, iniciales de nombre y apellido y Daniel Arroyo identificado como administrador en los datos. Histórico de inactivos y distinción de apuestas ausentes.
-- Administración exclusiva de Daniel: altas, bajas y reincorporaciones; creación y selección de jornadas; carga y corrección de los 14 signos y el Pleno de cualquier participante.
+- Administración exclusiva de Daniel: altas, bajas y reincorporaciones; jornadas importadas; carga/corrección de 14 signos con hasta dos dobles y Pleno, con estado de completitud por persona.
+- Importación programada de SELAE y seguimiento espaciado de OddsPapi con presupuesto persistente. Marcadores provisionales separados de signos oficiales; sin llamadas deportivas por visitante. [Configuración y límites](docs/sincronizacion.md).
 - Autorización en servidor, cookie HttpOnly y pronósticos excluidos de la respuesta pública antes del cierre.
 - Sistema de diseño centralizado con Tailwind CSS 4, preset PrimeNG styled mode, Manrope e Inter locales.
 - Componentes compartidos de botones, superficies, encabezados, estados, badges, diálogo y pronósticos.
@@ -40,7 +47,7 @@ Angular 22 es la última línea estable, pero PrimeNG 22 requiere una clave Prim
 
 `domain` contiene modelos y reglas puras; `core/data` separa el contrato HTTP y el estado; `core/auth` gestiona la sesión; `features` organiza Jornadas, Clasificación y Administración; `shared/ui` contiene la biblioteca visual. Las rutas se cargan bajo demanda. `server` contiene autenticación, validación y API; `netlify/functions` adapta esa API a Netlify.
 
-El proveedor `QUINIELA_REPOSITORY` consulta `/api/season`. Los participantes iniciales viven en `server/seed.json`, fuera de los archivos públicos. Netlify guarda los cambios en Blobs con revisión ETag y protección frente a escrituras concurrentes. [Cómo cargar jornadas](docs/datos.md). [Arquitectura y privacidad](docs/arquitectura.md).
+El proveedor `QUINIELA_REPOSITORY` consulta `/api/season`. Los participantes iniciales viven en `server/seed.json`, fuera de los archivos públicos. Netlify guarda los cambios en Blobs con revisión ETag y protección frente a escrituras concurrentes. [Jornadas importadas y carga de pronósticos](docs/datos.md). [Arquitectura y privacidad](docs/arquitectura.md).
 
 Los valores visuales viven en `src/styles/tokens.css`; PrimeNG referencia esas mismas variables. Cambiar `--radius-control` de `0.75rem` a `0.5rem` cambia botones, navegación y selectores sin editar las pantallas. Playwright verifica ese comportamiento. [Sistema de diseño](DESIGN.md).
 
@@ -69,6 +76,6 @@ Salida: `dist/materos-quinieleros/browser`. `netlify.toml` configura el build, l
 
 La API excluye pronósticos y Pleno antes del cierre usando su reloj. El frontend público nunca recibe la copia privada. El rol de los datos no concede permisos: solo una sesión validada por el servidor permite administrar.
 
-Hay un único acceso administrativo para Daniel; el resto consulta sin registrarse. No hay recuperación por correo, editor de resultados oficiales ni conexión deportiva externa. No se añaden Chart.js ni un sistema de puntos.
+Hay un único acceso administrativo para Daniel; el resto consulta sin registrarse. No hay recuperación por correo ni editor manual de resultados oficiales. Las integraciones están probadas con simulaciones y muestras públicas actuales de SELAE (jornadas 16 y 17); no se realizaron consultas autenticadas a OddsPapi. No se añade un sistema de puntos.
 
 Antes de producción queda configurar secretos y verificar Functions, Blobs y límite de intentos en un despliegue real. La actualización Angular/PrimeNG 22 requiere resolver licencia y runtime. Las pruebas cubren Chromium; quedan pendientes lectores de pantalla y Safari/Firefox.

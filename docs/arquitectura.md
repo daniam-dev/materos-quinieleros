@@ -22,11 +22,11 @@ La aplicación usa componentes standalone con OnPush, rutas cargadas bajo demand
 
 `QuinielaRepository` define `loadSeason(): Promise<SeasonSnapshot>`. `QUINIELA_REPOSITORY` desacopla interfaz y datos. `HttpQuinielaRepository` consulta `/api/season`; el servidor fija `asOf` y filtra datos privados. `QuinielaStore` expone datos, carga, error y reintento. La edición usa `AdminService` y un snapshot privado separado del store público.
 
-La temporada arranca sin jornadas y con nueve participantes reales. `currentJourneyId` asigna la jornada actual explícitamente y admite `null`; nunca se usa la primera jornada como sustituto. El histórico se ordena por fecha descendente y distingue `league` (Liga) de `europe` (boletos de Champions / Europa League), incluso con el mismo número. Los identificadores deben ser únicos dentro de la temporada. [Carga manual](datos.md).
+La temporada arranca sin jornadas y con los nueve participantes reales. SELAE aporta jornadas con identidad oficial y orden. `currentJourneyId` selecciona automáticamente la más antigua empezada sin todos los resultados confirmados, después la próxima y finalmente la última. El histórico conserva todas las temporadas. Los valores heredados `league` y `europe` siguen admitidos; las importaciones usan `mixed` hasta disponer de evidencia de las competiciones, sin deducirlas por fecha/equipo. [Flujo habitual](datos.md).
 
 ## Cálculos
 
-- Los primeros 14 encuentros se evalúan exclusivamente con `OfficialResult` publicado antes de `asOf`.
+- Los primeros 14 encuentros se evalúan exclusivamente con `OfficialResult` publicado antes de `asOf`. Un sencillo o doble que incluya el signo oficial suma un acierto; máximo 14. Hasta dos dobles por persona, validados en el servidor.
 - Un marcador en curso o finalizado sin signo oficial no cuenta como resultado evaluable.
 - Una liquidación administrativa usa su signo de boleto; una X administrativa no inventa un empate deportivo.
 - Una predicción ausente se muestra como «Sin apuesta» y no entra en el denominador.
@@ -49,6 +49,6 @@ El servidor decide el cierre con su reloj. `/api/season` elimina pronósticos y 
 
 ## Administración y próximos pasos
 
-Implementados API pública/privada, validación, cookie firmada, panel de Daniel, disco local y adaptador Blobs con control de revisión. [Configuración y límites](administracion.md).
+Implementados API pública/privada, cookie firmada, panel, disco local y Blobs con control de revisión. `season` guarda personas/apuestas y `sports-v1` las importaciones, marcadores, signos y el control de cuota. El worker no escribe el blob privado. La API compone ambos al leer, con eliminación de pronósticos antes del cierre. Los sencillos guardados siguen siendo válidos. [Configuración deportiva y concurrencia](sincronizacion.md).
 
-Pendientes: configurar secretos y verificar Functions/Blobs desplegados, editor de resultados oficiales, fuente deportiva y trazabilidad completa de correcciones. Las vistas públicas refrescan al recargar; no hay actualización en tiempo real.
+Pendientes: configurar secretos y verificar Functions/Blobs desplegados, acceso real SELAE, cuenta y cobertura OddsPapi. Las vistas refrescan la copia compartida cada cinco minutos cuando son visibles. `displayPrediction` calcula aciertos provisionales para mostrar; `journeyRanking` y `seasonRanking` siguen contando exclusivamente confirmados. No se certifica directo riguroso ni trazabilidad exhaustiva de cada corrección.

@@ -15,6 +15,7 @@ const child = spawn(process.execPath, ['scripts/dev.mjs'], {
   env: {
     ...process.env,
     MQ_LOCAL_DATA_DIR: directory,
+    MQ_TEST_PROVIDERS: '1',
     ADMIN_PASSWORD_HASH: await hashPassword('e2e-only-password'),
     ADMIN_SESSION_SECRET: randomBytes(48).toString('base64url'),
   },

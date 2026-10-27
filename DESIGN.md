@@ -114,6 +114,10 @@ Controles a 44 px de altura y radio de 12 px; tarjetas y diálogos a 16 px. Marc
 
 PrimeNG Select se utiliza directamente: no hay wrapper artificial para cada control. Select y Dialog consumen el preset común y etiquetas españolas. Las opciones conservan un área táctil cómoda. El foco usa azul hielo con separación del control.
 
+La administración muestra jornadas importadas y su estado de sincronización en lugar de un formulario manual de jornadas o resultados. La carga de quinielas identifica cada persona como «Completa» o «Pendiente» y mantiene visible el contador de dobles (de 0 a 2), con el Pleno separado. Al alcanzar dos dobles se bloquean únicamente nuevas opciones dobles en otros encuentros; los signos sencillos siguen disponibles. La lista de personas se adapta al ancho disponible, conservando nombre y estado juntos.
+
+En la comparativa, `MqPredictionMark` distingue aciertos y fallos confirmados mediante sus símbolos habituales. Los provisionales usan borde discontinuo y el texto «prov.», explicado en la leyenda; sus descripciones accesibles indican también si el resultado es confirmado o provisional. Estos estados conservan la paleta y la sobriedad de Modern Social Club.
+
 ## Do's and Don'ts
 
 - Usar tokens semánticos para color, radio, tipografía, altura, espacio y estados compartidos.

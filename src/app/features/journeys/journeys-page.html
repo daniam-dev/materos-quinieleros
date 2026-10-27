@@ -35,6 +35,15 @@
   }
 </mq-page-header>
 
+@if (store.snapshot()?.synchronization; as sync) {
+  <p class="fine-print sync-public">{{ sync['selae']?.message }} {{ sync['odds']?.message }}</p>
+}
+@if (store.hasError() && store.snapshot()) {
+  <p class="fine-print">
+    No se pudo refrescar la copia compartida. Se conservan los últimos datos.
+  </p>
+}
+
 @if (journey(); as current) {
   @if (published()) {
     <section class="comparison-section" aria-labelledby="comparison-title">
@@ -96,7 +105,7 @@
               <path d="m3 3 6 6m0-6-6 6" /></svg
             >Fallo</span
           ><span><span class="legend-pending" aria-hidden="true"></span>Pendiente</span
-          ><span>— Sin apuesta</span>
+          ><span>— Sin apuesta</span><span>prov. = resultado provisional</span>
         </div>
         <mq-button variant="quiet" (activated)="rulesVisible.set(true)">Cómo se calcula</mq-button>
       </div>

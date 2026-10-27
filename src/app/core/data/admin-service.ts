@@ -10,6 +10,7 @@ export interface AdminSnapshot {
   readonly revision: string;
 }
 export type AdminCommand =
+  | { type: 'sync' }
   | { type: 'add-participant'; name: string; surname: string }
   | { type: 'set-active'; participantId: string; active: boolean }
   | { type: 'set-current'; journeyId: string | null }

@@ -196,6 +196,29 @@
   .prediction-mark--pending {
     border: var(--border-width) solid var(--color-line);
   }
+  .prediction-mark--provisional-hit,
+  .prediction-mark--provisional-miss {
+    border: var(--border-width) dashed var(--color-line);
+    flex-direction: column;
+    gap: 0;
+  }
+  .prediction-mark--provisional-hit {
+    color: var(--color-hit);
+  }
+  .prediction-mark--provisional-miss {
+    color: var(--color-miss);
+  }
+  .prediction-mark small {
+    font-size: var(--text-xs);
+  }
+  .fixture-score small {
+    display: block;
+    color: var(--color-muted);
+    font-size: var(--text-xs);
+  }
+  .sync-public {
+    margin-bottom: var(--space-6);
+  }
   .prediction-mark--missing {
     color: var(--color-muted);
   }

@@ -1,5 +1,17 @@
 # Verificación
 
+## Importación y resultados automáticos — 27/10/2026
+
+Implementación local terminada, sin publicación ni despliegue. `npm run check` aprobado: formato, UTF-8/LF, ESLint, ambos proyectos TypeScript, 33 pruebas Angular, 40 pruebas de servidor y build de producción de 497,31 kB, dentro del presupuesto. Bundling local de las tres Functions con esbuild aprobado. Dependencias sin cambios; auditoría no repetida.
+
+Las pruebas con proveedores simulados cubren importación idempotente, conservación de apuestas e identificadores, horarios y zona Europe/Madrid, jornadas entre semana, privacidad, revisiones independientes, cero/uno/dos dobles y rechazo del tercero/triples, correcciones oficiales y marcadores provisionales sin impacto en clasificación. Incluyen reservas duraderas antes de llamar al proveedor, concurrencia y trabajador caducado, límites reales inferiores, agotamiento, errores facturables, metadatos y ausencia de consultas deportivas por visitantes.
+
+Ocho escenarios Playwright aprobados contra API local y persistencia temporal. El flujo administrativo incluye importar con proveedor simulado, guardar/corregir apuestas, contador y bloqueo del tercer doble, pegado, bajas/reincorporaciones, privacidad y refresco sin perder filtros. Se corrigió el bloqueo accidental de los sencillos al compartir grupo de radio con un doble deshabilitado. Capturas y revisión visual de Administración y comparativa a 1440 y 390 px en `.impeccable/review/admin-{imported,predictions,comparison}-{desktop,mobile}.png`: sin defectos materiales en esos estados. La captura móvil de comparativa corresponde al modo individual; no certifica todas las combinaciones de columnas ni nombres reales largos. Axe y las capturas no certifican conformidad WCAG.
+
+Comprobación pública real mínima de SELAE: jornada 17 (`1326906062`), 15 encuentros y cierre/primer inicio `2026-10-27T19:00:00.000Z`; jornada 16 (`1326606061`), 15 horarios recuperados, 14 signos y Pleno confirmados. La petición inicial con PowerShell fue rechazada; fetch de Node permitió verificar el formato vigente. Se adaptaron listas y detalle sin temporada/jornada/posición explícitas, fechas escapadas y recuperación de horarios desde calendario. Las respuestas públicas reducidas quedan en `server/testing/selae-v3-sample.json` para regresiones sin red. Esto no garantiza disponibilidad continua ni acceso desde Netlify.
+
+No se ha efectuado ninguna consulta autenticada a OddsPapi ni consumido su cuota. Su integración, cuenta, presupuesto y marcadores están probados con simulaciones. Queda verificar la suscripción real, su renovación, la cobertura y correspondencia de encuentros, y una ejecución controlada en Netlify tras configurar los secretos. Configuración y límites: [sincronización](sincronizacion.md). Se conservan los nueve participantes originales y sus datos locales.
+
 ## Corrección del acceso local — 26/10/2026
 
 Reproducido el fallo informado por el usuario: con credenciales deliberadamente incorrectas, `127.0.0.1:4200` devolvía 401 y `localhost:4200` devolvía 403 de origen. El adaptador local fijaba siempre el primer host; el cliente convertía cualquier 403 en «La sesión ha caducado».
@@ -32,4 +44,4 @@ Las pruebas usan credenciales efímeras y directorios temporales propios; no cam
 
 El informe HTML es opcional; las trazas de fallos quedan en `test-results`. Dependencias, build, informes, capturas, datos locales y secretos están excluidos de Git. El bloqueo histórico al limpiar artefactos de turnos anteriores permanece documentado en Cortex; esta tarea no ha intentado esa limpieza.
 
-No se han configurado secretos reales, publicado commits ni desplegado Functions/Blobs. Pendientes: configurar acceso, verificar persistencia y límite de intentos en Netlify, lector de pantalla y Safari/Firefox. No hay fuente deportiva externa ni editor de resultados oficiales. Axe no certifica conformidad WCAG.
+No se han configurado secretos reales ni desplegado Functions/Blobs durante estas verificaciones. Pendientes: configuración inicial, persistencia y límite de intentos en Netlify, integración autenticada de OddsPapi, lector de pantalla y Safari/Firefox. Las fuentes deportivas se incorporaron el 27/10; no hay editor manual de resultados oficiales. Axe no certifica conformidad WCAG.

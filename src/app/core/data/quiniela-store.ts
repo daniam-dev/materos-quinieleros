@@ -1,4 +1,5 @@
-import { Injectable, inject, signal } from '@angular/core';
+import { DestroyRef, Injectable, inject, signal } from '@angular/core';
+import { DOCUMENT } from '@angular/common';
 import { SeasonSnapshot } from '../../domain/models';
 import { QUINIELA_REPOSITORY } from './quiniela-repository';
 
@@ -13,10 +14,22 @@ export class QuinielaStore {
   readonly hasError = this.failure.asReadonly();
   constructor() {
     void this.load();
+    const document = inject(DOCUMENT);
+    const refresh = () => {
+      if (document.visibilityState === 'visible') void this.load(true);
+    };
+    const timer = setInterval(refresh, 5 * 60 * 1000);
+    document.addEventListener('visibilitychange', refresh);
+    inject(DestroyRef).onDestroy(() => {
+      clearInterval(timer);
+      document.removeEventListener('visibilitychange', refresh);
+    });
   }
-  async load(): Promise<void> {
-    if (this.loading()) return;
-    this.loading.set(true);
+  private refreshing = false;
+  async load(quiet = false): Promise<void> {
+    if (this.refreshing) return;
+    this.refreshing = true;
+    if (!quiet) this.loading.set(true);
     this.failure.set(false);
     try {
       this.data.set(await this.repository.loadSeason());
@@ -24,6 +37,7 @@ export class QuinielaStore {
       this.failure.set(true);
     } finally {
       this.loading.set(false);
+      this.refreshing = false;
     }
   }
 }

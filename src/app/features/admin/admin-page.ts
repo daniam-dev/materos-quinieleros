@@ -2,6 +2,7 @@ import {
   afterNextRender,
   ChangeDetectionStrategy,
   Component,
+  DestroyRef,
   computed,
   effect,
   ElementRef,
@@ -10,6 +11,8 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
+import { MadridDatePipe } from '../../shared/ui/madrid-date';
+import { DOCUMENT } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../core/auth/auth-service';
@@ -23,7 +26,7 @@ import { Participant } from '../../domain/models';
 
 @Component({
   selector: 'mq-admin-page',
-  imports: [FormsModule, MqPageHeader, MqButton, MqLoadingState, MqEmptyState],
+  imports: [MadridDatePipe, FormsModule, MqPageHeader, MqButton, MqLoadingState, MqEmptyState],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './admin-page.html',
 })
@@ -52,9 +55,10 @@ export class AdminPage {
       ) ?? [],
   );
   readonly existing = computed(
-    () => this.journey()?.participantIds.includes(this.participantId()) ?? false,
+    () =>
+      this.journey()?.predictions.some((p) => p.participantId === this.participantId()) ?? false,
   );
-  readonly signs = ['1', 'X', '2'];
+  readonly signs = ['1', 'X', '2', '1X', '12', 'X2'];
   readonly goals = ['0', '1', '2', 'M'];
   predictions: string[] = Array<string>(14).fill('');
   plenoHome = '';
@@ -62,10 +66,6 @@ export class AdminPage {
   pasted = '';
   name = '';
   surname = '';
-  number: number | null = null;
-  competition: 'league' | 'europe' = 'league';
-  closesAt = '';
-  fixtures = Array.from({ length: 15 }, () => ({ home: '', away: '', kickoff: '' }));
   constructor() {
     const injector = inject(Injector);
     effect(() => {
@@ -74,6 +74,28 @@ export class AdminPage {
       }
     });
     void this.reload();
+    const document = inject(DOCUMENT);
+    const refresh = async () => {
+      if (document.visibilityState !== 'visible' || this.busy() || this.loading()) return;
+      try {
+        const latest = await this.api.load();
+        // Only refresh sports when the private revision is unchanged; retain unsaved inputs.
+        if (latest.revision === this.data()?.revision) this.data.set(latest);
+        else
+          this.error.set(
+            'Otra sesión ha cambiado las quinielas o las personas. Recarga antes de guardar.',
+          );
+      } catch {
+        this.error.set('No se pudo refrescar el panel. Tus cambios sin guardar se conservan.');
+      }
+    };
+    const timer = setInterval(() => void refresh(), 5 * 60 * 1000);
+    const onVisible = () => void refresh();
+    document.addEventListener('visibilitychange', onVisible);
+    inject(DestroyRef).onDestroy(() => {
+      clearInterval(timer);
+      document.removeEventListener('visibilitychange', onVisible);
+    });
   }
 
   selectTab(tab: 'predictions' | 'people' | 'journeys'): void {
@@ -124,12 +146,17 @@ export class AdminPage {
     this.notice.set('');
   }
   pasteSigns(): void {
-    const value = this.pasted.toUpperCase().replace(/[\s,;|-]/g, '');
-    if (!/^[1X2]{14}$/.test(value)) {
-      this.error.set('Pega exactamente 14 signos: 1, X o 2.');
+    const text = this.pasted.toUpperCase().trim();
+    const values = /^[1X2]{14}$/.test(text) ? [...text] : text.split(/[\s,;|]+/);
+    if (values.length !== 14 || values.some((s) => !this.signs.includes(s))) {
+      this.error.set('Pega exactamente 14 signos separados por espacios: 1, X, 2, 1X, 12 o X2.');
       return;
     }
-    this.predictions = [...value];
+    if (values.filter((s) => s.length === 2).length > 2) {
+      this.error.set('Solo se permiten dos dobles por participante.');
+      return;
+    }
+    this.predictions = values;
     this.error.set('');
   }
   async commit(command: AdminCommand, success: string): Promise<boolean> {
@@ -186,35 +213,28 @@ export class AdminPage {
       'Quiniela guardada.',
     );
   }
-  async createJourney(): Promise<void> {
-    const iso = (value: string) => new Date(value).toISOString();
-    try {
-      if (
-        await this.commit(
-          {
-            type: 'create-journey',
-            number: this.number ?? 0,
-            competition: this.competition,
-            closesAt: iso(this.closesAt),
-            fixtures: this.fixtures.map((f) => ({ ...f, kickoff: iso(f.kickoff) })),
-          },
-          'Jornada creada. Ya puedes cargar las quinielas.',
-        )
-      ) {
-        this.journeyId.set(this.data()?.snapshot.journeys.at(-1)?.id ?? '');
-        this.number = null;
-        this.closesAt = '';
-        this.fixtures = Array.from({ length: 15 }, () => ({ home: '', away: '', kickoff: '' }));
-        this.loadPredictions();
-        this.tab.set('predictions');
-        this.notice.set('Jornada creada. Ya puedes cargar las quinielas.');
-      }
-    } catch {
-      this.error.set('Revisa las fechas de cierre y de los encuentros.');
-    }
+  doubles(): number {
+    return this.predictions.filter((s) => s.length === 2).length;
   }
-  async setCurrent(id: string | null): Promise<void> {
-    await this.commit({ type: 'set-current', journeyId: id }, 'Jornada actual actualizada.');
+  doubleDisabled(index: number, sign: string): boolean {
+    return sign.length === 2 && this.predictions[index].length !== 2 && this.doubles() >= 2;
+  }
+  complete(id: string): boolean {
+    const j = this.journey();
+    return (
+      !!j &&
+      j.fixtures.every((f) =>
+        j.predictions.some((p) => p.fixtureId === f.id && p.participantId === id),
+      ) &&
+      j.pleno.predictions.some((p) => p.participantId === id)
+    );
+  }
+  async retrySync(): Promise<void> {
+    await this.commit(
+      { type: 'sync' },
+      'Sincronización solicitada. Revisa el estado de las fuentes.',
+    );
+    if (!this.journeyId()) this.journeyId.set(this.data()?.snapshot.currentJourneyId ?? '');
   }
   async logout(): Promise<void> {
     if (this.busy()) return;

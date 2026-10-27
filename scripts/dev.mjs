@@ -1,6 +1,9 @@
 import { createServer } from 'node:http';
-import { readFileSync, writeFileSync, mkdirSync, renameSync } from 'node:fs';
-import { randomUUID } from 'node:crypto';
+import { readFileSync } from 'node:fs';
+import { localStore } from '../server/local-store.mjs';
+import { synchronize } from '../server/synchronize.mjs';
+import { selaeProvider } from '../server/providers/selae.mjs';
+import { oddspapiProvider } from '../server/providers/oddspapi.mjs';
 import { spawn } from 'node:child_process';
 import { createApi } from '../server/api.mjs';
 import { localRequest } from '../server/local-request.mjs';
@@ -12,33 +15,23 @@ try {
   if (error.code !== 'ENOENT') throw error;
 }
 const directory = process.env.MQ_LOCAL_DATA_DIR ?? '.netlify/local';
-const filename = `${directory}/season.json`;
 const seed = JSON.parse(readFileSync('server/seed.json', 'utf8'));
-const store = {
-  async read() {
-    try {
-      return JSON.parse(readFileSync(filename, 'utf8'));
-    } catch (error) {
-      if (error.code === 'ENOENT') return null;
-      throw error;
-    }
-  },
-  async write(data, etag, metadata) {
-    // No await between read and rename: CAS is atomic within this single local process.
-    let current = null;
-    try {
-      current = JSON.parse(readFileSync(filename, 'utf8'));
-    } catch (error) {
-      if (error.code !== 'ENOENT') throw error;
-    }
-    if ((current?.etag ?? null) !== etag) return false;
-    mkdirSync(directory, { recursive: true });
-    writeFileSync(`${filename}.tmp`, JSON.stringify({ data, etag: randomUUID(), metadata }) + '\n');
-    renameSync(`${filename}.tmp`, filename);
-    return true;
-  },
-};
-const api = createApi({ store, seed, env: process.env });
+const store = localStore(directory, 'season');
+const sportsStore = localStore(directory, 'sports-v1');
+const selae =
+  process.env.MQ_TEST_PROVIDERS === '1' && process.env.MQ_LOCAL_DATA_DIR
+    ? (await import('../server/testing/providers.mjs')).e2eSelae()
+    : selaeProvider();
+const sync = () =>
+  synchronize({
+    privateStore: store,
+    sportsStore,
+    seed,
+    selae,
+    odds: oddspapiProvider(undefined),
+    force: true,
+  });
+const api = createApi({ store, sportsStore, seed, env: process.env, sync });
 const attempts = new Map();
 const server = createServer(async (req, res) => {
   if (req.url === '/api/auth' && req.method === 'POST') {

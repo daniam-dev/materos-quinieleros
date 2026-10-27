@@ -158,8 +158,12 @@ export function applyCommand(original, command) {
       requireValue(
         Array.isArray(command.signs) &&
           command.signs.length === 14 &&
-          command.signs.every((s) => ['1', 'X', '2'].includes(s)),
-        'Completa los 14 signos: 1, X o 2.',
+          command.signs.every((s) => ['1', 'X', '2', '1X', '12', 'X2'].includes(s)),
+        'Completa los 14 signos: 1, X, 2, 1X, 12 o X2.',
+      );
+      requireValue(
+        command.signs.filter((s) => s.length === 2).length <= 2,
+        'Solo se permiten dos dobles por participante.',
       );
       requireValue(
         command.pleno &&

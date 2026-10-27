@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { adminId, authenticated, configured, sessionCookie, verifyPassword } from './auth.mjs';
 import { ApiError, applyCommand, publicSeason } from './domain.mjs';
+import { mergeSports, privateUpdate } from './sports-data.mjs';
 
 function json(data, status = 200, headers = {}) {
   return Response.json(data, {
@@ -38,7 +39,7 @@ async function body(request) {
 }
 
 /** store: read() -> {data, etag} | null; write(data, etag) -> boolean (compare-and-swap). */
-export function createApi({ store, seed, env, clock = Date.now }) {
+export function createApi({ store, seed, env, sportsStore, sync, clock = Date.now }) {
   return async (request) => {
     try {
       const now = clock();
@@ -85,7 +86,9 @@ export function createApi({ store, seed, env, clock = Date.now }) {
       if (request.method !== 'GET' && !(url.pathname === '/api/admin' && request.method === 'POST'))
         throw new ApiError(405, 'Método no permitido.');
       const stored = await store.read();
-      const snapshot = stored?.data ?? seed;
+      const original = stored?.data ?? seed;
+      const sports = sportsStore ? (await sportsStore.read())?.data : null;
+      const snapshot = mergeSports(original, sports, now);
       const revision = stored?.etag ?? 'initial';
       if (request.method === 'GET') {
         if (url.pathname === '/api/season') return json(publicSeason(snapshot, now));
@@ -96,7 +99,12 @@ export function createApi({ store, seed, env, clock = Date.now }) {
           409,
           'Los datos han cambiado. Recarga el panel antes de volver a guardar.',
         );
-      const next = applyCommand(snapshot, await body(request));
+      const command = await body(request);
+      if (command?.type === 'sync') {
+        if (!sync) throw new ApiError(503, 'La sincronización no está configurada.');
+        return json(await sync());
+      }
+      const next = privateUpdate(original, applyCommand(snapshot, command), command);
       // Store metadata is private and does not become part of the public snapshot.
       const modified = await store.write(next, stored?.etag ?? null, {
         updatedAt: new Date(now).toISOString(),

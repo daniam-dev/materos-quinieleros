@@ -1,6 +1,7 @@
 import { Fixture, Journey, Participant, SeasonSnapshot } from './models';
 import {
   compareRanking,
+  displayPrediction,
   evaluatePleno,
   evaluatePrediction,
   isPublished,
@@ -82,6 +83,23 @@ function settled(): Journey {
 }
 
 describe('Publicación y resultados oficiales', () => {
+  it('dobles cuentan un acierto y los marcadores provisionales no alteran la clasificación', () => {
+    const double = { ...prediction, sign: '1X' as const };
+    const j = journey({ predictions: [double] });
+    expect(evaluatePrediction(j, double, now)).toBe('hit');
+    expect(journeyRanking(j, [participant], now)[0].hits).toBe(1);
+    const live = journey({
+      predictions: [double],
+      officialResults: [],
+      fixtures: [{ ...fixture, score: { home: 1, away: 1 }, scoreScope: 'regulation' }],
+    });
+    expect(displayPrediction(live, double, now)).toBe('provisional-hit');
+    expect(journeyRanking(live, [participant], now)[0].hits).toBe(0);
+    expect(seasonRanking(snapshot([live]))[0].wins).toBe(0);
+    const corrected = { ...live, fixtures: [{ ...live.fixtures[0], score: { home: 1, away: 2 } }] };
+    expect(displayPrediction(corrected, double, now)).toBe('provisional-miss');
+    expect(displayPrediction({ ...live, closesAt: after }, double, now)).toBe('hidden');
+  });
   it('distingue abierta, cerrada, parcial y finalizada', () => {
     expect(journeyState(journey({ closesAt: after }), now)).toBe('open');
     expect(journeyState(journey({ officialResults: [] }), now)).toBe('closed');

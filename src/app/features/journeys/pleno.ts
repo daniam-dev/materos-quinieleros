@@ -3,9 +3,10 @@ import { Journey, Participant } from '../../domain/models';
 import { evaluatePleno } from '../../domain/scoring';
 import { MqPredictionMark } from '../../shared/ui/prediction-mark';
 import { MqBadge } from '../../shared/ui/badge';
+import { MadridDatePipe } from '../../shared/ui/madrid-date';
 @Component({
   selector: 'mq-pleno',
-  imports: [MqPredictionMark, MqBadge],
+  imports: [MqPredictionMark, MqBadge, MadridDatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `<section aria-labelledby="pleno-title">
     <div class="section-heading">
@@ -17,6 +18,13 @@ import { MqBadge } from '../../shared/ui/badge';
     </p>
     @if (official(); as result) {
       <p class="muted">Oficial: {{ result.home }} – {{ result.away }}</p>
+    } @else if (journey().pleno.fixture.score; as score) {
+      <p class="muted">
+        Provisional: {{ score.home }} – {{ score.away }}
+        {{ journey().pleno.fixture.scoreScope === 'regulation' ? '(90 min)' : '' }} ·
+        {{ journey().pleno.fixture.scoreUpdatedAt | madridDate: 'dd/MM HH:mm' }}
+        {{ journey().pleno.fixture.stale ? ' · Desactualizado' : '' }}
+      </p>
     }
     <div class="pleno-predictions">
       @for (row of rows(); track row.participant.id) {

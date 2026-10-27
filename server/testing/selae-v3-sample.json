@@ -1,0 +1,504 @@
+{
+  "capturedAt": "2026-10-27T09:06:27.284Z",
+  "source": "https://www.loteriasyapuestas.es/servicios/",
+  "recordings": {
+    "proximosv3:listing": [
+      {
+        "game_id": "LAQU",
+        "id_sorteo": "1326906062",
+        "fecha": "2026-10-28 00:00:00",
+        "cierre": "2026-10-27 20:00:00",
+        "jornada": 17
+      },
+      {
+        "game_id": "LAQU",
+        "id_sorteo": "1327306063",
+        "fecha": "2026-11-01 00:00:00",
+        "cierre": null,
+        "jornada": 18
+      },
+      {
+        "game_id": "LAQU",
+        "id_sorteo": "1327706064",
+        "fecha": "2026-11-05 00:00:00",
+        "cierre": null,
+        "jornada": 19
+      }
+    ],
+    "sorteov3:1326906062": [
+      {
+        "game_id": "LAQU",
+        "id_sorteo": "1326906062",
+        "fecha_sorteo": "2026-10-28 00:00:00",
+        "partidos": [
+          {
+            "local": "Rsd Alcalá (m)",
+            "visitante": "Las Palmas (m)",
+            "fecha": "2026\\/10\\/27 20:00:00"
+          },
+          {
+            "local": "Cd Alcoyano (m)",
+            "visitante": "Mallorca (m)",
+            "fecha": "2026\\/10\\/28 20:00:00"
+          },
+          {
+            "local": "Arosa Sc (m)",
+            "visitante": "Pontevedra Cf (m)",
+            "fecha": "2026\\/10\\/27 21:00:00"
+          },
+          {
+            "local": "At. Calatayud (m)",
+            "visitante": "Osasuna (m)",
+            "fecha": "2026\\/10\\/29 19:00:00"
+          },
+          {
+            "local": "Cd Badajoz (m)",
+            "visitante": "Tenerife (m)",
+            "fecha": "2026\\/10\\/28 20:00:00"
+          },
+          {
+            "local": "Cd Cieza (m)",
+            "visitante": "Granada (m)",
+            "fecha": "2026\\/10\\/28 20:30:00"
+          },
+          {
+            "local": "Ub Conquense (m)",
+            "visitante": "Castellón (m)",
+            "fecha": "2026\\/10\\/29 20:00:00"
+          },
+          {
+            "local": "Cd Covadonga (m)",
+            "visitante": "R. Valladolid (m)",
+            "fecha": "2026\\/10\\/28 20:00:00"
+          },
+          {
+            "local": "Cd Minera (m)",
+            "visitante": "Fc Cartagena (m)",
+            "fecha": "2026\\/10\\/28 20:30:00"
+          },
+          {
+            "local": "Cd Don Benito (m)",
+            "visitante": "Cd Extremadura (m)",
+            "fecha": "2026\\/10\\/27 20:30:00"
+          },
+          {
+            "local": "Cd Laredo (m)",
+            "visitante": "Burgos (m)",
+            "fecha": "2026\\/10\\/29 20:00:00"
+          },
+          {
+            "local": "Cd Numancia (m)",
+            "visitante": "R. Oviedo (m)",
+            "fecha": "2026\\/10\\/28 20:00:00"
+          },
+          {
+            "local": "Cd Tudelano (m)",
+            "visitante": "R. Zaragoza (m)",
+            "fecha": "2026\\/10\\/27 21:00:00"
+          },
+          {
+            "local": "Xerez Cd (m)",
+            "visitante": "Cádiz (m)",
+            "fecha": "2026\\/10\\/28 21:00:00"
+          },
+          {
+            "local": "Recreativo De Huelva (m)",
+            "visitante": "Rayo Vallecano (m)",
+            "fecha": "2026\\/10\\/27 21:00:00"
+          }
+        ]
+      }
+    ],
+    "fechav3:20261025": [
+      {
+        "game_id": "LAQU",
+        "id_sorteo": "1326606061",
+        "fecha_sorteo": "2026-10-25 23:00:00",
+        "jornada": "16",
+        "temporada": "2026-2027",
+        "partidos": [
+          {
+            "local": "Rayo Vallecano (m)",
+            "visitante": "Elche (m)",
+            "signo": "2 ",
+            "marcador": "0 - 3"
+          },
+          {
+            "local": "Valencia (m)",
+            "visitante": "Villarreal (m)",
+            "signo": "2 ",
+            "marcador": "1 - 2"
+          },
+          {
+            "local": "At. Madrid (m)",
+            "visitante": "Deportivo (m)",
+            "signo": "1 ",
+            "marcador": "1 - 0"
+          },
+          {
+            "local": "Athletic Club (m)",
+            "visitante": "Getafe (m)",
+            "signo": "1 ",
+            "marcador": "4 - 0"
+          },
+          {
+            "local": "Celta (m)",
+            "visitante": "Betis (m)",
+            "signo": "X ",
+            "marcador": "0 - 0"
+          },
+          {
+            "local": "Real Sociedad (m)",
+            "visitante": "Levante (m)",
+            "signo": "1 ",
+            "marcador": "2 - 1"
+          },
+          {
+            "local": "Sevilla (m)",
+            "visitante": "Osasuna (m)",
+            "signo": "1 ",
+            "marcador": "2 - 0"
+          },
+          {
+            "local": "Leganés (m)",
+            "visitante": "Mallorca (m)",
+            "signo": "X ",
+            "marcador": "1 - 1"
+          },
+          {
+            "local": "Almería (m)",
+            "visitante": "R. Oviedo (m)",
+            "signo": "X ",
+            "marcador": "2 - 2"
+          },
+          {
+            "local": "Sabadell (m)",
+            "visitante": "Tenerife (m)",
+            "signo": "X ",
+            "marcador": "1 - 1"
+          },
+          {
+            "local": "Logroño (f)",
+            "visitante": "Badalona W. (f)",
+            "signo": "1 ",
+            "marcador": "1 - 0"
+          },
+          {
+            "local": "Deportivo (f)",
+            "visitante": "Alavés (f)",
+            "signo": "1 ",
+            "marcador": "2 - 1"
+          },
+          {
+            "local": "Eibar (f)",
+            "visitante": "Madrid Cff (f)",
+            "signo": "X ",
+            "marcador": "2 - 2"
+          },
+          {
+            "local": "Real Madrid (f)",
+            "visitante": "Tenerife (f)",
+            "signo": "1 ",
+            "marcador": "3 - 2"
+          },
+          {
+            "local": "Barcelona (m)",
+            "visitante": "Real Madrid (m)",
+            "signo": "1-2",
+            "marcador": "1 - 2"
+          }
+        ]
+      }
+    ],
+    "sorteov3:1326606061": [
+      {
+        "game_id": "LAQU",
+        "id_sorteo": "1326606061",
+        "fecha_sorteo": "2026-10-25 23:00:00",
+        "partidos": [
+          {
+            "local": "Rayo Vallecano (m)",
+            "visitante": "Elche (m)",
+            "signo": "2 ",
+            "marcador": "0 - 3"
+          },
+          {
+            "local": "Valencia (m)",
+            "visitante": "Villarreal (m)",
+            "signo": "2 ",
+            "marcador": "1 - 2"
+          },
+          {
+            "local": "At. Madrid (m)",
+            "visitante": "Deportivo (m)",
+            "signo": "1 ",
+            "marcador": "1 - 0"
+          },
+          {
+            "local": "Athletic Club (m)",
+            "visitante": "Getafe (m)",
+            "signo": "1 ",
+            "marcador": "4 - 0"
+          },
+          {
+            "local": "Celta (m)",
+            "visitante": "Betis (m)",
+            "signo": "X ",
+            "marcador": "0 - 0"
+          },
+          {
+            "local": "Real Sociedad (m)",
+            "visitante": "Levante (m)",
+            "signo": "1 ",
+            "marcador": "2 - 1"
+          },
+          {
+            "local": "Sevilla (m)",
+            "visitante": "Osasuna (m)",
+            "signo": "1 ",
+            "marcador": "2 - 0"
+          },
+          {
+            "local": "Leganés (m)",
+            "visitante": "Mallorca (m)",
+            "signo": "X ",
+            "marcador": "1 - 1"
+          },
+          {
+            "local": "Almería (m)",
+            "visitante": "R. Oviedo (m)",
+            "signo": "X ",
+            "marcador": "2 - 2"
+          },
+          {
+            "local": "Sabadell (m)",
+            "visitante": "Tenerife (m)",
+            "signo": "X ",
+            "marcador": "1 - 1"
+          },
+          {
+            "local": "Logroño (f)",
+            "visitante": "Badalona W. (f)",
+            "signo": "1 ",
+            "marcador": "1 - 0"
+          },
+          {
+            "local": "Deportivo (f)",
+            "visitante": "Alavés (f)",
+            "signo": "1 ",
+            "marcador": "2 - 1"
+          },
+          {
+            "local": "Eibar (f)",
+            "visitante": "Madrid Cff (f)",
+            "signo": "X ",
+            "marcador": "2 - 2"
+          },
+          {
+            "local": "Real Madrid (f)",
+            "visitante": "Tenerife (f)",
+            "signo": "1 ",
+            "marcador": "3 - 2"
+          },
+          {
+            "local": "Barcelona (m)",
+            "visitante": "Real Madrid (m)",
+            "signo": "1-2",
+            "marcador": "1 - 2"
+          }
+        ]
+      }
+    ],
+    "buscadorSorteos:listing": [
+      {
+        "game_id": "LAQU",
+        "id_sorteo": "1326606061",
+        "fecha_sorteo": "2026-10-25 23:00:00",
+        "jornada": "16",
+        "temporada": "2026-2027",
+        "partidos": [
+          {
+            "posicion": 1,
+            "idLocal": 156,
+            "local": "Rayo Vallecano (m)",
+            "idVisitante": 131,
+            "visitante": "Elche (m)",
+            "signo": "2 ",
+            "marcador": "0 - 3",
+            "fecha": "24-10-2026",
+            "hora": "14:00",
+            "fecha_completa": "2026-10-24 14:00:00"
+          },
+          {
+            "posicion": 2,
+            "idLocal": 19,
+            "local": "Valencia (m)",
+            "idVisitante": 20,
+            "visitante": "Villarreal (m)",
+            "signo": "2 ",
+            "marcador": "1 - 2",
+            "fecha": "24-10-2026",
+            "hora": "18:30",
+            "fecha_completa": "2026-10-24 18:30:00"
+          },
+          {
+            "posicion": 3,
+            "idLocal": 3,
+            "local": "At. Madrid (m)",
+            "idVisitante": 7,
+            "visitante": "Deportivo (m)",
+            "signo": "1 ",
+            "marcador": "1 - 0",
+            "fecha": "24-10-2026",
+            "hora": "21:00",
+            "fecha_completa": "2026-10-24 21:00:00"
+          },
+          {
+            "posicion": 4,
+            "idLocal": 1,
+            "local": "Athletic Club (m)",
+            "idVisitante": 5,
+            "visitante": "Getafe (m)",
+            "signo": "1 ",
+            "marcador": "4 - 0",
+            "fecha": "25-10-2026",
+            "hora": "14:00",
+            "fecha_completa": "2026-10-25 14:00:00"
+          },
+          {
+            "posicion": 5,
+            "idLocal": 111,
+            "local": "Celta (m)",
+            "idVisitante": 11,
+            "visitante": "Betis (m)",
+            "signo": "X ",
+            "marcador": "0 - 0",
+            "fecha": "25-10-2026",
+            "hora": "16:15",
+            "fecha_completa": "2026-10-25 16:15:00"
+          },
+          {
+            "posicion": 6,
+            "idLocal": 125,
+            "local": "Real Sociedad (m)",
+            "idVisitante": 6,
+            "visitante": "Levante (m)",
+            "signo": "1 ",
+            "marcador": "2 - 1",
+            "fecha": "25-10-2026",
+            "hora": "18:30",
+            "fecha_completa": "2026-10-25 18:30:00"
+          },
+          {
+            "posicion": 7,
+            "idLocal": 17,
+            "local": "Sevilla (m)",
+            "idVisitante": 2,
+            "visitante": "Osasuna (m)",
+            "signo": "1 ",
+            "marcador": "2 - 0",
+            "fecha": "26-10-2026",
+            "hora": "21:00",
+            "fecha_completa": "2026-10-26 21:00:00"
+          },
+          {
+            "posicion": 8,
+            "idLocal": 1151,
+            "local": "Leganés (m)",
+            "idVisitante": 10,
+            "visitante": "Mallorca (m)",
+            "signo": "X ",
+            "marcador": "1 - 1",
+            "fecha": "24-10-2026",
+            "hora": "16:15",
+            "fecha_completa": "2026-10-24 16:15:00"
+          },
+          {
+            "posicion": 9,
+            "idLocal": 18,
+            "local": "Almería (m)",
+            "idVisitante": 1000,
+            "visitante": "R. Oviedo (m)",
+            "signo": "X ",
+            "marcador": "2 - 2",
+            "fecha": "24-10-2026",
+            "hora": "21:00",
+            "fecha_completa": "2026-10-24 21:00:00"
+          },
+          {
+            "posicion": 10,
+            "idLocal": 907,
+            "local": "Sabadell (m)",
+            "idVisitante": 108,
+            "visitante": "Tenerife (m)",
+            "signo": "X ",
+            "marcador": "1 - 1",
+            "fecha": "25-10-2026",
+            "hora": "14:00",
+            "fecha_completa": "2026-10-25 14:00:00"
+          },
+          {
+            "posicion": 11,
+            "idLocal": 4615,
+            "local": "Logroño (f)",
+            "idVisitante": 4607,
+            "visitante": "Badalona W. (f)",
+            "signo": "1 ",
+            "marcador": "1 - 0",
+            "fecha": "24-10-2026",
+            "hora": "18:15",
+            "fecha_completa": "2026-10-24 18:15:00"
+          },
+          {
+            "posicion": 12,
+            "idLocal": 7,
+            "local": "Deportivo (f)",
+            "idVisitante": 374,
+            "visitante": "Alavés (f)",
+            "signo": "1 ",
+            "marcador": "2 - 1",
+            "fecha": "25-10-2026",
+            "hora": "12:45",
+            "fecha_completa": "2026-10-25 12:45:00"
+          },
+          {
+            "posicion": 13,
+            "idLocal": 124,
+            "local": "Eibar (f)",
+            "idVisitante": 2690,
+            "visitante": "Madrid Cff (f)",
+            "signo": "X ",
+            "marcador": "2 - 2",
+            "fecha": "25-10-2026",
+            "hora": "17:00",
+            "fecha_completa": "2026-10-25 17:00:00"
+          },
+          {
+            "posicion": 14,
+            "idLocal": 12,
+            "local": "Real Madrid (f)",
+            "idVisitante": 108,
+            "visitante": "Tenerife (f)",
+            "signo": "1 ",
+            "marcador": "3 - 2",
+            "fecha": "24-10-2026",
+            "hora": "16:00",
+            "fecha_completa": "2026-10-24 16:00:00"
+          },
+          {
+            "posicion": 15,
+            "idLocal": 4,
+            "local": "Barcelona (m)",
+            "idVisitante": 12,
+            "visitante": "Real Madrid (m)",
+            "signo": "1-2",
+            "marcador": "1 - 2",
+            "fecha": "25-10-2026",
+            "hora": "21:00",
+            "fecha_completa": "2026-10-25 21:00:00"
+          }
+        ]
+      }
+    ]
+  }
+}

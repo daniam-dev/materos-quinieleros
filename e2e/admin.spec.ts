@@ -61,7 +61,7 @@ test('acceso real, gestión del grupo y carga persistente de quinielas con priva
   await page.getByLabel('Contraseña', { exact: true }).fill('e2e-only-password');
   await page.getByRole('button', { name: 'Acceder', exact: true }).click();
   await expect(page).toHaveURL(/\/administracion$/);
-  await expect(page.getByRole('heading', { name: 'Crea la primera jornada' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Esperando jornadas de SELAE' })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Administración', exact: true })).toBeVisible();
   await inspect(page, 'empty');
   await page.reload();
@@ -87,30 +87,30 @@ test('acceso real, gestión del grupo y carga persistente de quinielas con priva
 
   await page.getByRole('button', { name: 'Jornadas', exact: true }).click();
   await expect(page.getByRole('status')).toHaveText('');
-  await page.getByLabel('Número de jornada').fill('1');
-  await page.getByLabel('Cierre de apuestas').fill('2099-10-26T10:00');
-  for (let i = 0; i < 15; i++) {
-    await page.locator(`#home-${i}`).fill(`Local ${i + 1}`);
-    await page.locator(`#away-${i}`).fill(`Visitante ${i + 1}`);
-    await page.locator(`#kickoff-${i}`).fill('2099-10-26T11:00');
-  }
-  await inspect(page, 'create');
-  await page.getByLabel('Cierre de apuestas').fill('2099-10-27T10:00');
-  await page.getByRole('button', { name: 'Crear jornada', exact: true }).click();
-  await expect(page.getByRole('alert')).toContainText('cierre debe ser anterior');
-  await expect(page.locator('.admin-feedback-summary')).toBeFocused();
-  await expect(page.getByRole('alert')).toBeInViewport();
-  await expect(page.locator('#home-0')).toHaveValue('Local 1');
-  await page.getByLabel('Cierre de apuestas').fill('2099-10-26T10:00');
-  await page.getByRole('button', { name: 'Crear jornada', exact: true }).click();
-  await expect(page.getByRole('heading', { name: 'Cargar quiniela' })).toBeVisible();
-  await expect(page.getByRole('status')).toContainText('Jornada creada');
-  await page.getByLabel('Participante', { exact: true }).selectOption({ label: 'Persona Prueba' });
+  await expect(page.getByRole('heading', { name: 'Jornadas importadas' })).toBeVisible();
+  await page.getByRole('button', { name: 'Reintentar sincronización' }).click();
+  await expect(page.getByRole('status')).toContainText('Sincronización solicitada');
+  await inspect(page, 'imported');
+  await page.getByRole('button', { name: 'Cargar quinielas de la jornada 1', exact: true }).click();
+  await page
+    .getByLabel('Participante', { exact: true })
+    .selectOption({ label: 'Persona Prueba · Falta quiniela' });
   await page.getByLabel('Pegar los 14 signos (opcional)').fill('1 X 2');
   await page.getByRole('button', { name: 'Aplicar signos' }).click();
   await expect(page.getByRole('alert')).toContainText('exactamente 14 signos');
-  await page.getByLabel('Pegar los 14 signos (opcional)').fill('1 X 2 1 X 2 1 X 2 1 X 2 1 X');
+  await page.getByLabel('Pegar los 14 signos (opcional)').fill('1X X2 2 1 X 2 1 X 2 1 X 2 1 X');
   await page.getByRole('button', { name: 'Aplicar signos' }).click();
+  await expect(page.getByText('Dobles usados: 2 / 2.', { exact: false })).toBeVisible();
+  await expect(
+    page
+      .getByRole('group', { name: '3. Local 3 (m) · Visitante 3 (m)', exact: true })
+      .getByRole('radio', { name: '12', exact: true }),
+  ).toBeDisabled();
+  const thirdSingle = page
+    .getByRole('group', { name: '3. Local 3 (m) · Visitante 3 (m)', exact: true })
+    .getByRole('radio', { name: '1', exact: true });
+  await expect(thirdSingle).toBeEnabled();
+  await thirdSingle.check();
   await page.getByLabel('Goles del local').selectOption('M');
   await page.getByLabel('Goles del visitante').selectOption('2');
   await page.getByRole('button', { name: 'Guardar quiniela', exact: true }).click();
@@ -119,15 +119,18 @@ test('acceso real, gestión del grupo y carga persistente de quinielas con priva
   await expect(page.getByRole('status')).toBeInViewport();
   await inspect(page, 'predictions');
   await page.reload();
-  await page.getByLabel('Participante', { exact: true }).selectOption({ label: 'Persona Prueba' });
+  await page.getByLabel('Jornada', { exact: true }).selectOption('selae-10001');
+  await page
+    .getByLabel('Participante', { exact: true })
+    .selectOption({ label: 'Persona Prueba · Completa' });
   await expect(
     page
-      .getByRole('group', { name: '1. Local 1 · Visitante 1', exact: true })
-      .getByRole('radio', { name: '1', exact: true }),
+      .getByRole('group', { name: '1. Local 1 (m) · Visitante 1 (m)', exact: true })
+      .getByRole('radio', { name: '1X', exact: true }),
   ).toBeChecked();
   await expect(page.getByLabel('Goles del local')).toHaveValue('M');
   await page
-    .getByRole('group', { name: '1. Local 1 · Visitante 1', exact: true })
+    .getByRole('group', { name: '1. Local 1 (m) · Visitante 1 (m)', exact: true })
     .getByRole('radio', { name: 'X', exact: true })
     .check();
   await page.getByRole('button', { name: 'Actualizar quiniela', exact: true }).click();
@@ -158,6 +161,30 @@ test('acceso real, gestión del grupo y carga persistente de quinielas con priva
   await publicPage.goto('/administracion');
   await expect(publicPage).toHaveURL(/\/acceso$/);
   await visitor.close();
+  // Real API and isolated persistence; only sports providers are simulated.
+  let state = await (await page.request.get('/api/admin')).json();
+  for (const person of state.snapshot.participants.filter((p: { active: boolean }) => p.active)) {
+    const result = await page.request.post('/api/admin', {
+      headers: { Origin: 'http://127.0.0.1:4200', 'If-Match': state.revision },
+      data: {
+        type: 'save-predictions',
+        journeyId: 'selae-10002',
+        participantId: person.id,
+        signs: ['1X', 'X2', ...Array(12).fill('1')],
+        pleno: { home: 'M', away: '1' },
+      },
+    });
+    expect(result.status()).toBe(200);
+    state = await (await page.request.get('/api/admin')).json();
+  }
+  await page.goto('/jornadas');
+  await expect(page.locator('[data-testid="fixture-row"]')).toHaveCount(14);
+  await expect(page.locator('.prediction-mark--provisional-hit')).not.toHaveCount(0);
+  await inspect(page, 'comparison');
+  await page.getByRole('button', { name: 'Pendientes', exact: true }).click();
+  await page.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
+  await expect(page.locator('[data-testid="fixture-row"]')).toHaveCount(13);
+  await page.goto('/administracion');
 
   await page.getByRole('button', { name: 'Cerrar sesión' }).click();
   await expect(page).toHaveURL(/\/jornadas$/);

@@ -46,6 +46,9 @@
               <div class="teams">
                 <span>{{ row.fixture.home }}</span
                 ><span>{{ row.fixture.away }}</span>
+                @if (row.fixture.competitionName) {
+                  <small>{{ row.fixture.competitionName }}</small>
+                }
               </div>
               <div class="fixture-score">
                 @if (row.fixture.score; as score) {
@@ -55,6 +58,20 @@
                       <span class="live-minute">{{ row.fixture.minute }}′</span>
                     }
                   </span>
+                  <small
+                    >Provisional{{
+                      row.fixture.scoreScope === 'regulation' ? ' · 90 min' : ''
+                    }}</small
+                  >
+                  @if (row.fixture.scoreUpdatedAt) {
+                    <small
+                      >{{ row.fixture.scoreSource }} ·
+                      {{ row.fixture.scoreUpdatedAt | madridDate: 'dd/MM HH:mm' }}</small
+                    >
+                  }
+                  @if (row.fixture.stale) {
+                    <small>Desactualizado</small>
+                  }
                 }
                 <span class="fixture-status" [class.live-label]="row.fixture.status === 'live'">{{
                   row.status
@@ -65,6 +82,9 @@
           <td class="official-column">
             @if (row.official; as official) {
               <span class="official-sign">{{ official.sign }}</span>
+              @if (official.note) {
+                <span class="administrative-note" [title]="official.note">SELAE</span>
+              }
               @if (official.source === 'administrative') {
                 <span
                   class="administrative-note"

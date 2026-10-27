@@ -105,11 +105,11 @@
       @case ('predictions') {
         @if (!state.snapshot.journeys.length) {
           <mq-empty-state
-            title="Crea la primera jornada"
-            message="Añade los encuentros y el cierre antes de cargar las quinielas del grupo."
+            title="Esperando jornadas de SELAE"
+            message="Las jornadas se importan automáticamente. Consulta el estado de sincronización si todavía no aparecen."
           >
             <mq-button variant="primary" (activated)="selectTab('journeys')"
-              >Crear jornada</mq-button
+              >Ver sincronización</mq-button
             >
           </mq-empty-state>
         } @else {
@@ -126,7 +126,13 @@
                   @for (j of state.snapshot.journeys; track j.id) {
                     <option [value]="j.id">
                       Jornada {{ j.number }} ·
-                      {{ j.competition === 'league' ? 'Liga' : 'Champions / Europa League' }}
+                      {{
+                        j.competition === 'mixed'
+                          ? 'Boleto SELAE'
+                          : j.competition === 'league'
+                            ? 'Liga'
+                            : 'Champions / Europa League'
+                      }}
                     </option>
                   }
                 </select>
@@ -140,7 +146,9 @@
                 >
                   @for (person of people(); track person.id) {
                     <option [value]="person.id">
-                      {{ person.name }} {{ person.surname }}{{ person.active ? '' : ' (inactivo)' }}
+                      {{ person.name }} {{ person.surname }} ·
+                      {{ complete(person.id) ? 'Completa' : 'Falta quiniela'
+                      }}{{ person.active ? '' : ' (inactivo)' }}
                     </option>
                   }
                 </select>
@@ -168,7 +176,18 @@
                   <mq-button (activated)="pasteSigns()">Aplicar signos</mq-button>
                 </div>
               </div>
+              <ul class="completion-list" aria-label="Estado de las quinielas">
+                @for (person of people(); track person.id) {
+                  <li>
+                    {{ person.name }} {{ person.surname }}
+                    <strong>{{ complete(person.id) ? 'Completa' : 'Pendiente' }}</strong>
+                  </li>
+                }
+              </ul>
               <form (ngSubmit)="savePredictions()">
+                <p class="admin-help" aria-live="polite">
+                  Dobles usados: {{ doubles() }} / 2. El Pleno se introduce por separado.
+                </p>
                 <div class="admin-predictions">
                   @for (fixture of j.fixtures; track fixture.id; let i = $index) {
                     <fieldset class="prediction-editor">
@@ -180,6 +199,7 @@
                               type="radio"
                               [name]="'sign-' + i"
                               [value]="sign"
+                              [attr.disabled]="doubleDisabled(i, sign) ? '' : null"
                               [(ngModel)]="predictions[i]"
                               required
                             /><span>{{ sign }}</span></label
@@ -226,104 +246,66 @@
       }
       @case ('journeys') {
         <section aria-labelledby="journeys-title">
-          <div class="section-heading"><h2 id="journeys-title">Jornadas de la temporada</h2></div>
-          @if (state.snapshot.journeys.length) {
-            <div class="admin-form admin-current">
-              <label for="current-journey">Jornada actual</label>
-              <select
-                id="current-journey"
-                [ngModel]="state.snapshot.currentJourneyId ?? ''"
-                (ngModelChange)="setCurrent($event || null)"
-              >
-                <option value="">Sin jornada actual</option>
-                @for (j of state.snapshot.journeys; track j.id) {
-                  <option [value]="j.id">
-                    Jornada {{ j.number }} ·
-                    {{ j.competition === 'league' ? 'Liga' : 'Champions / Europa League' }}
-                  </option>
-                }
-              </select>
-            </div>
-          }
-          <form class="admin-form admin-create-journey" (ngSubmit)="createJourney()">
-            <h3>Crear jornada</h3>
-            <p class="admin-help">
-              Introduce los encuentros reales. Las fechas usan la zona horaria de este dispositivo.
+          <div class="section-heading"><h2 id="journeys-title">Jornadas importadas</h2></div>
+          <p class="admin-help">
+            Los horarios y resultados se actualizan automáticamente. La jornada en curso se mantiene
+            como actual hasta su confirmación oficial.
+          </p>
+          <div class="sync-summary">
+            <p>
+              {{
+                state.snapshot.synchronization?.['selae']?.message ??
+                  'Primera sincronización pendiente.'
+              }}
             </p>
-            <div class="admin-fields">
-              <div class="admin-form">
-                <label for="journey-number">Número de jornada</label
-                ><input
-                  id="journey-number"
-                  name="number"
-                  type="number"
-                  required
-                  min="1"
-                  max="999"
-                  [(ngModel)]="number"
-                />
-              </div>
-              <div class="admin-form">
-                <label for="competition">Competición</label
-                ><select id="competition" name="competition" [(ngModel)]="competition">
-                  <option value="league">Liga</option>
-                  <option value="europe">Champions / Europa League</option>
-                </select>
-              </div>
-              <div class="admin-form">
-                <label for="closes-at">Cierre de apuestas</label
-                ><input
-                  id="closes-at"
-                  name="closesAt"
-                  type="datetime-local"
-                  required
-                  [(ngModel)]="closesAt"
-                />
-              </div>
-            </div>
-            <div class="admin-fixtures">
-              @for (fixture of fixtures; track $index; let i = $index) {
-                <fieldset class="fixture-editor">
-                  <legend>{{ i === 14 ? 'Pleno al 15' : 'Encuentro ' + (i + 1) }}</legend>
-                  <div class="admin-fields">
-                    <div class="admin-form">
-                      <label [for]="'home-' + i">Local</label
-                      ><input
-                        [id]="'home-' + i"
-                        [name]="'home-' + i"
-                        required
-                        maxlength="80"
-                        [(ngModel)]="fixture.home"
-                      />
-                    </div>
-                    <div class="admin-form">
-                      <label [for]="'away-' + i">Visitante</label
-                      ><input
-                        [id]="'away-' + i"
-                        [name]="'away-' + i"
-                        required
-                        maxlength="80"
-                        [(ngModel)]="fixture.away"
-                      />
-                    </div>
-                    <div class="admin-form">
-                      <label [for]="'kickoff-' + i">Fecha y hora</label
-                      ><input
-                        [id]="'kickoff-' + i"
-                        [name]="'kickoff-' + i"
-                        type="datetime-local"
-                        required
-                        [(ngModel)]="fixture.kickoff"
-                      />
-                    </div>
-                  </div>
-                </fieldset>
+            @if (state.snapshot.synchronization?.['selae']?.checkedAt; as checked) {
+              <p class="muted">Último intento: {{ checked | madridDate: 'dd/MM/yyyy HH:mm' }}</p>
+            }
+            <p>
+              {{
+                state.snapshot.synchronization?.['odds']?.message ??
+                  'Marcadores pendientes de configuración.'
+              }}
+            </p>
+            @if (state.snapshot.synchronization?.['odds']; as odds) {
+              @if (odds.used !== undefined) {
+                <p class="muted">
+                  Consumo prudente: {{ odds.used }} / {{ odds.operational }} llamadas operativas.
+                  Reserva protegida.
+                </p>
               }
-            </div>
-            <button class="mq-button mq-button--primary" type="submit">
-              {{ busy() ? 'Guardando…' : 'Crear jornada' }}
-            </button>
-          </form>
+            }
+            <mq-button (activated)="retrySync()" [disabled]="busy()"
+              >Reintentar sincronización</mq-button
+            >
+          </div>
+          <ul class="admin-people">
+            @for (j of state.snapshot.journeys; track j.id) {
+              <li>
+                <div class="admin-person">
+                  <strong
+                    >Jornada {{ j.number }} · {{ j.seasonId
+                    }}{{ j.id === state.snapshot.currentJourneyId ? ' · Actual' : '' }}</strong
+                  >
+                  <span
+                    >{{ j.startsAt | madridDate: 'dd/MM/yyyy' }} ·
+                    {{ j.officialId ? 'SELAE ' + j.officialId : 'Histórico conservado' }}</span
+                  >
+                  <span>{{
+                    j.syncStatus === 'error'
+                      ? 'Actualización pendiente; copia conservada'
+                      : j.officialResults.length + ' / 14 signos confirmados'
+                  }}</span>
+                </div>
+                <mq-button (activated)="selectJourney(j.id); selectTab('predictions')"
+                  >Cargar quinielas
+                  <span class="sr-only">de la jornada {{ j.number }}</span></mq-button
+                >
+              </li>
+            } @empty {
+              <li>Todavía no hay jornadas importadas.</li>
+            }
+          </ul>
         </section>
       }
     }

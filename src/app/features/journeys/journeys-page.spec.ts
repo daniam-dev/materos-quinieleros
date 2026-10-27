@@ -66,15 +66,16 @@ describe('Selección de jornadas', () => {
     expect(page.journey()).toBeUndefined();
   });
 
-  it('distingue Liga y Europa con el mismo número y excluye otras temporadas', () => {
+  it('distingue Liga y Europa con el mismo número y conserva otras temporadas', () => {
     const league = journey('league');
     const europe = journey('europe', { competition: 'europe' });
     const page = create([league, europe, journey('old', { seasonId: 'old' })], europe.id);
     expect(page.journey()).toEqual(europe);
     expect(page.options().map((option) => option.label)).toEqual([
       'Jornada actual',
-      'Jornada 1 · Liga',
-      'Jornada 1 · Champions / Europa League',
+      'Jornada 1 · Liga · season',
+      'Jornada 1 · Champions / Europa League · season',
+      'Jornada 1 · Liga · old',
     ]);
     page.filter.set('resolved');
     page.selectJourney(league.id);
