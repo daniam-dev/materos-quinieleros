@@ -91,6 +91,52 @@ test('acceso real, gestión del grupo y carga persistente de quinielas con priva
   await page.getByRole('button', { name: 'Reintentar sincronización' }).click();
   await expect(page.getByRole('status')).toContainText('Sincronización solicitada');
   await inspect(page, 'imported');
+  await page.getByRole('button', { name: 'Competiciones', exact: true }).click();
+  await page
+    .getByRole('checkbox', { name: 'Filtrar boletos por competición', exact: true })
+    .check();
+  await page.getByRole('switch', { name: 'Champions League', exact: true }).uncheck();
+  await page.getByRole('button', { name: 'Guardar competiciones', exact: true }).click();
+  await expect(page.getByRole('status')).toContainText('Configuración guardada');
+  let selection = await (await page.request.get('/api/admin')).json();
+  expect(
+    selection.snapshot.journeys.find((j: { id: string }) => j.id === 'selae-10001').participation
+      .state,
+  ).toBe('pending');
+  await page.getByLabel('Boleto que quieres identificar').selectOption('selae-10001');
+  await expect(page.locator('.admin-coupon-fixtures li')).toHaveCount(15);
+  await page.getByRole('checkbox', { name: 'Primera División', exact: true }).check();
+  await page.getByRole('checkbox', { name: 'Champions League', exact: true }).check();
+  await expect(
+    page.getByRole('button', { name: 'Confirmar competiciones del boleto', exact: true }),
+  ).toBeDisabled();
+  await page.getByRole('checkbox', { name: 'He revisado los 15 encuentros', exact: false }).check();
+  await page
+    .getByRole('button', { name: 'Confirmar competiciones del boleto', exact: true })
+    .click();
+  await expect(page.getByRole('status')).toContainText('Competiciones del boleto confirmadas');
+  await inspect(page, 'competitions');
+  let selectedPublic = await (await page.request.get('/api/season')).json();
+  expect(selectedPublic.journeys.some((j: { id: string }) => j.id === 'selae-10001')).toBe(false);
+  await page.reload();
+  await page.getByRole('button', { name: 'Competiciones', exact: true }).click();
+  await expect(
+    page.getByRole('switch', { name: 'Champions League', exact: true }),
+  ).not.toBeChecked();
+  await page.getByLabel('Boleto que quieres identificar').selectOption('selae-10001');
+  await expect(page.getByRole('checkbox', { name: 'Primera División', exact: true })).toBeChecked();
+  await expect(page.getByRole('checkbox', { name: 'Champions League', exact: true })).toBeChecked();
+  await page.getByRole('switch', { name: 'Champions League', exact: true }).check();
+  await page.getByRole('button', { name: 'Guardar competiciones', exact: true }).click();
+  await expect(page.getByRole('status')).toContainText('Configuración guardada');
+  selection = await (await page.request.get('/api/admin')).json();
+  expect(
+    selection.snapshot.journeys.find((j: { id: string }) => j.id === 'selae-10001').participation
+      .state,
+  ).toBe('enabled');
+  selectedPublic = await (await page.request.get('/api/season')).json();
+  expect(selectedPublic.journeys.some((j: { id: string }) => j.id === 'selae-10001')).toBe(true);
+  await page.getByRole('button', { name: 'Jornadas', exact: true }).click();
   await page.getByRole('button', { name: 'Cargar quinielas de la jornada 1', exact: true }).click();
   await page
     .getByLabel('Participante', { exact: true })

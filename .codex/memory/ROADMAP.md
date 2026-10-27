@@ -17,3 +17,7 @@ Implementada y validada localmente el 27/10. Sustituye la propuesta de integraci
 1. Trazabilidad exhaustiva de correcciones y posibles herramientas técnicas para incidencias; no se ha encargado un editor manual de resultados.
 2. Revisar migración Angular/PrimeNG 22 con licencia legítima y runtime compatible.
 3. Antes de producción: lector de pantalla y Safari/Firefox, además de verificación remota de Functions/Blobs.
+
+## 2026-10-27 - Seleccion de competiciones en administracion
+
+Alternativa resuelta por el usuario: conservar boletos SELAE completos y seleccionar segun sus competiciones. Implementado y validado localmente; ver CURRENT, DECISIONS y docs/competiciones.md. Otras competiciones agrupa torneos fuera del catalogo inicial; no se ha encargado un catalogo personalizado por torneo. Publicacion, despliegue y cobertura deportiva real siguen sin acreditarse.

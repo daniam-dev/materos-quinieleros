@@ -2,6 +2,12 @@ import { randomUUID } from 'node:crypto';
 import { adminId, authenticated, configured, sessionCookie, verifyPassword } from './auth.mjs';
 import { ApiError, applyCommand, publicSeason } from './domain.mjs';
 import { mergeSports, privateUpdate } from './sports-data.mjs';
+import {
+  competitionOptions,
+  competitionIds,
+  fixtureSignature,
+  withParticipation,
+} from './competitions.mjs';
 
 function json(data, status = 200, headers = {}) {
   return Response.json(data, {
@@ -88,11 +94,30 @@ export function createApi({ store, seed, env, sportsStore, sync, clock = Date.no
       const stored = await store.read();
       const original = stored?.data ?? seed;
       const sports = sportsStore ? (await sportsStore.read())?.data : null;
-      const snapshot = mergeSports(original, sports, now);
+      const snapshot = withParticipation(mergeSports(original, sports, now));
       const revision = stored?.etag ?? 'initial';
       if (request.method === 'GET') {
-        if (url.pathname === '/api/season') return json(publicSeason(snapshot, now));
-        return json({ snapshot: { ...snapshot, asOf: new Date(now).toISOString() }, revision });
+        const selected = publicSeason(snapshot, now);
+        if (url.pathname === '/api/season') return json(selected);
+        const { competitionSettings, journeyCompetitions, ...adminSnapshot } = snapshot;
+        return json({
+          snapshot: {
+            ...adminSnapshot,
+            currentJourneyId: selected.currentJourneyId,
+            season: selected.season,
+            asOf: new Date(now).toISOString(),
+            journeys: snapshot.journeys.map((j) => ({
+              ...j,
+              fixtureSignature: fixtureSignature(j),
+            })),
+          },
+          revision,
+          competitionCatalog: competitionOptions,
+          competitionSettings: {
+            enabled: competitionSettings?.enabled ?? false,
+            enabledIds: competitionSettings?.enabledIds ?? competitionIds,
+          },
+        });
       }
       if (request.headers.get('if-match') !== revision)
         throw new ApiError(
@@ -104,7 +129,7 @@ export function createApi({ store, seed, env, sportsStore, sync, clock = Date.no
         if (!sync) throw new ApiError(503, 'La sincronización no está configurada.');
         return json(await sync());
       }
-      const next = privateUpdate(original, applyCommand(snapshot, command), command);
+      const next = privateUpdate(original, applyCommand(snapshot, command, now), command);
       // Store metadata is private and does not become part of the public snapshot.
       const modified = await store.write(next, stored?.etag ?? null, {
         updatedAt: new Date(now).toISOString(),

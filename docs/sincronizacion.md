@@ -1,5 +1,7 @@
 # Importación y seguimiento automático
 
+La [selección de competiciones](competiciones.md) se configura desde el panel. SELAE sigue actualizando todos los boletos; el worker omite marcadores de los pendientes o excluidos según la configuración leída al iniciar el ciclo.
+
 ## Configuración inicial
 
 Se mantienen Angular, Netlify Functions y Netlify Blobs. La publicación queda fuera del encargo.

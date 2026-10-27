@@ -41,7 +41,22 @@ export class AdminPage {
   readonly busy = signal(false);
   readonly error = signal('');
   readonly notice = signal('');
-  readonly tab = signal<'predictions' | 'people' | 'journeys'>('predictions');
+  readonly tab = signal<'predictions' | 'people' | 'journeys' | 'competitions'>('predictions');
+  readonly availableJourneys = computed(
+    () =>
+      this.data()?.snapshot.journeys.filter(
+        (j) => !['excluded', 'pending'].includes(j.participation?.state ?? ''),
+      ) ?? [],
+  );
+  readonly classificationId = signal('');
+  readonly classificationJourney = computed(() =>
+    this.data()?.snapshot.journeys.find((j) => j.id === this.classificationId()),
+  );
+  filterEnabled = false;
+  enabledCompetitionIds: string[] = [];
+  classifiedCompetitionIds: string[] = [];
+  classificationConfirmed = false;
+  classificationSignature = '';
   readonly removal = signal('');
   readonly journey = computed(() =>
     this.data()?.snapshot.journeys.find((j) => j.id === this.journeyId()),
@@ -80,8 +95,12 @@ export class AdminPage {
       try {
         const latest = await this.api.load();
         // Only refresh sports when the private revision is unchanged; retain unsaved inputs.
-        if (latest.revision === this.data()?.revision) this.data.set(latest);
-        else
+        if (latest.revision === this.data()?.revision) {
+          this.data.set(latest);
+          if (this.classificationJourney()?.fixtureSignature !== this.classificationSignature)
+            this.classificationConfirmed = false;
+          this.refreshSelection();
+        } else
           this.error.set(
             'Otra sesión ha cambiado las quinielas o las personas. Recarga antes de guardar.',
           );
@@ -98,7 +117,7 @@ export class AdminPage {
     });
   }
 
-  selectTab(tab: 'predictions' | 'people' | 'journeys'): void {
+  selectTab(tab: 'predictions' | 'people' | 'journeys' | 'competitions'): void {
     if (this.busy()) return;
     this.error.set('');
     this.notice.set('');
@@ -111,11 +130,16 @@ export class AdminPage {
     this.error.set('');
     try {
       this.data.set(await this.api.load());
+      this.loadCompetitionSettings();
       if (!this.journeyId())
         this.journeyId.set(
-          this.data()?.snapshot.currentJourneyId ?? this.data()?.snapshot.journeys[0]?.id ?? '',
+          this.availableJourneys().find((j) => j.id === this.data()?.snapshot.currentJourneyId)
+            ?.id ??
+            this.availableJourneys()[0]?.id ??
+            '',
         );
       this.loadPredictions();
+      this.refreshSelection();
     } catch (error) {
       this.error.set(this.api.message(error));
     } finally {
@@ -212,6 +236,73 @@ export class AdminPage {
       },
       'Quiniela guardada.',
     );
+  }
+  loadCompetitionSettings(): void {
+    this.filterEnabled = this.data()?.competitionSettings?.enabled ?? false;
+    this.enabledCompetitionIds = [...(this.data()?.competitionSettings?.enabledIds ?? [])];
+    if (this.classificationId()) this.selectClassification(this.classificationId());
+  }
+  toggleCompetition(id: string, checked: boolean, classification = false): void {
+    const ids = classification ? this.classifiedCompetitionIds : this.enabledCompetitionIds;
+    const next = checked ? [...new Set([...ids, id])] : ids.filter((value) => value !== id);
+    if (classification) {
+      this.classifiedCompetitionIds = next;
+      this.classificationConfirmed = false;
+    } else this.enabledCompetitionIds = next;
+  }
+  selectClassification(id: string): void {
+    this.classificationId.set(id);
+    this.classificationSignature = this.classificationJourney()?.fixtureSignature ?? '';
+    this.classifiedCompetitionIds = [
+      ...(this.classificationJourney()?.participation?.competitionIds ?? []),
+    ];
+    this.classificationConfirmed = false;
+  }
+  classifyJourney(id: string): void {
+    this.selectTab('competitions');
+    this.selectClassification(id);
+  }
+  private refreshSelection(): void {
+    if (!this.availableJourneys().some((j) => j.id === this.journeyId())) {
+      this.journeyId.set(this.availableJourneys()[0]?.id ?? '');
+      const notice = this.notice();
+      this.loadPredictions();
+      this.notice.set(notice);
+    }
+  }
+  async saveCompetitions(): Promise<void> {
+    if (
+      await this.commit(
+        {
+          type: 'set-competitions',
+          enabled: this.filterEnabled,
+          enabledIds: this.enabledCompetitionIds,
+        },
+        'Configuración guardada. Los boletos mixtos requieren todas sus competiciones habilitadas.',
+      )
+    ) {
+      this.loadCompetitionSettings();
+      this.refreshSelection();
+    }
+  }
+  async saveClassification(): Promise<void> {
+    const journey = this.classificationJourney();
+    if (!journey?.fixtureSignature) return;
+    if (
+      await this.commit(
+        {
+          type: 'classify-journey',
+          journeyId: journey.id,
+          competitionIds: this.classifiedCompetitionIds,
+          fixtureSignature: this.classificationSignature,
+          confirmed: this.classificationConfirmed,
+        },
+        'Competiciones del boleto confirmadas. Se ha aplicado la configuración del grupo.',
+      )
+    ) {
+      this.classificationConfirmed = false;
+      this.refreshSelection();
+    }
   }
   doubles(): number {
     return this.predictions.filter((s) => s.length === 2).length;

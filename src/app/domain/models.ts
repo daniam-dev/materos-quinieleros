@@ -50,6 +50,13 @@ export interface PlenoPrediction {
   readonly away: GoalPrediction;
 }
 export interface Journey {
+  readonly fixtureSignature?: string;
+  readonly participation?: {
+    readonly state: 'enabled' | 'excluded' | 'pending' | 'preserved';
+    readonly reason: string;
+    readonly source: 'admin' | 'provider' | 'unknown';
+    readonly competitionIds: readonly string[];
+  };
   readonly id: string;
   readonly seasonId: string;
   readonly number: number;

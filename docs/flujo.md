@@ -25,6 +25,8 @@ El descubrimiento de jornadas SELAE se actualiza cada seis horas e incluye jorna
 
 En **Administración → Jornadas** aparecen los boletos importados y el estado de sincronización. Si todavía no hay ninguno, se muestra el estado vacío: no se generan encuentros de ejemplo ni se solicita completar los equipos a mano.
 
+En **Administración → Competiciones** puedes filtrar qué boletos juega el grupo. Los mixtos requieren todas sus competiciones habilitadas; los no identificados quedan pendientes si activas el filtro. El histórico y las quinielas ya cargadas se conservan. Consulta la [regla de selección y la identificación manual](competiciones.md). La selección pública de jornada actual considera solo los boletos habilitados o conservados.
+
 La opción **Jornada actual** sigue esta regla:
 
 1. La más antigua que haya empezado y aún no tenga los 14 signos y el Pleno confirmados.

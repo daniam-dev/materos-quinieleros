@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { allFixtures, emptySports, settled } from './sports-data.mjs';
 import { drawIdentity, parseDraw } from './providers/selae.mjs';
+import { participation, playable } from './competitions.mjs';
 import {
   accountQuota,
   reconcileQuota,
@@ -30,6 +31,8 @@ export function updateJourney(previous, incoming, participants, now) {
   const merged = fresh.map((f, i) => {
     const result = { ...old[i], ...f, id: old[i].id };
     if (!f.kickoff && old[i].kickoff) result.kickoff = old[i].kickoff;
+    if (!f.competitionName && old[i].competitionName)
+      result.competitionName = old[i].competitionName;
     // A calendar refresh alone is not evidence that a suspended match resumed.
     if (
       old[i].kickoff === f.kickoff &&
@@ -145,8 +148,9 @@ export async function synchronize({
   }
   // Scheduled Functions allow 30s. Leave room for one bounded request and CAS writes.
   const withinTime = () => clock() - started < 18000;
+  let privateData;
   try {
-    const privateData = (await privateStore.read())?.data ?? seed;
+    privateData = (await privateStore.read())?.data ?? seed;
     delete data.sync.system;
     const now = clock();
     const candidates = new Map(Object.entries(data.pendingDraws ?? {}));
@@ -260,6 +264,27 @@ export async function synchronize({
   async function syncOdds() {
     let calls = 0;
     const now = clock();
+    const selected = (j) => {
+      const saved = privateData.journeys.find((s) => s.id === j.id);
+      return playable({
+        participation: participation(
+          {
+            ...j,
+            predictions: saved?.predictions,
+            pleno: { ...j.pleno, predictions: saved?.pleno.predictions },
+          },
+          privateData.competitionSettings,
+          privateData.journeyCompetitions,
+        ),
+      });
+    };
+    if (!data.journeys.some((j) => selected(j) && !settled(j))) {
+      data.sync.odds = {
+        state: 'idle',
+        message: 'Sin boletos habilitados pendientes de marcadores.',
+      };
+      return;
+    }
     try {
       // No billable work without a fresh account reconciliation.
       data.quota = reconcileQuota(data.quota, accountQuota(await odds.request('account')), clock());
@@ -298,6 +323,7 @@ export async function synchronize({
       }
       for (const j of data.journeys) {
         if (!withinTime()) break;
+        if (!selected(j)) continue;
         const fixtures = allFixtures(j);
         if (
           settled(j) ||
@@ -363,12 +389,13 @@ export async function synchronize({
         ? Math.max(1, (Date.parse(data.quota.until) - now) / (24 * hour))
         : 31;
       const remainingFinals = data.journeys
-        .filter((j) => !settled(j))
+        .filter((j) => selected(j) && !settled(j))
         .flatMap(allFixtures)
         .filter((f) => !data.jobs[`score:${f.id}:after`]).length;
       const forecast = Math.max(remainingFinals, Math.ceil(days / 7) * 30) + 4;
       for (const task of scoreTasks(data, clock())) {
         if (!withinTime() || calls >= 12) break;
+        if (!selected(task.journey)) continue;
         const { fixture: f, stage } = task;
         if (!f.oddsId) continue;
         if (stage === 'during' && data.quota.operational - data.quota.used <= forecast) continue;
@@ -391,8 +418,11 @@ export async function synchronize({
         }
         await save();
       }
-      data.sync.odds.coverage = data.journeys.flatMap(allFixtures).filter((f) => f.oddsId).length;
-      const pending = data.journeys.filter((j) => !settled(j)).flatMap(allFixtures);
+      data.sync.odds.coverage = data.journeys
+        .filter(selected)
+        .flatMap(allFixtures)
+        .filter((f) => f.oddsId).length;
+      const pending = data.journeys.filter((j) => selected(j) && !settled(j)).flatMap(allFixtures);
       const missing = pending.filter((f) => !f.oddsId).length;
       const failed = pending.some((f) =>
         ['during', 'after'].some((stage) =>

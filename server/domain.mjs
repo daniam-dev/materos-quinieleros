@@ -1,5 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { adminId } from './auth.mjs';
+import { competitionIds, fixtureSignature, playable, withParticipation } from './competitions.mjs';
+import { currentJourney } from './sports-data.mjs';
 
 export class ApiError extends Error {
   constructor(status, message, code) {
@@ -30,10 +32,21 @@ function date(value, label) {
 
 export function publicSeason(snapshot, now) {
   const asOf = new Date(now).toISOString();
+  const { competitionSettings, journeyCompetitions, ...visible } = snapshot;
+  const journeys = withParticipation(snapshot).journeys.filter(playable);
+  const currentJourneyId =
+    snapshot.currentJourneyId === null || journeys.some((j) => j.id === snapshot.currentJourneyId)
+      ? snapshot.currentJourneyId
+      : currentJourney(journeys, now);
+  const current = journeys.find((j) => j.id === currentJourneyId);
   return {
-    ...snapshot,
+    ...visible,
     asOf,
-    journeys: snapshot.journeys.map((journey) => {
+    currentJourneyId,
+    season: current?.source
+      ? { id: current.seasonId, label: current.source.season.replace('-', ' / ') }
+      : visible.season,
+    journeys: journeys.map((journey) => {
       const published = Date.parse(journey.closesAt) <= now;
       const { official, ...pleno } = journey.pleno;
       return {
@@ -52,11 +65,55 @@ export function publicSeason(snapshot, now) {
   };
 }
 
-export function applyCommand(original, command) {
+export function applyCommand(original, command, now = Date.now()) {
   requireValue(command && typeof command === 'object', 'Operación no válida.');
-  const snapshot = structuredClone(original);
+  const snapshot = withParticipation(structuredClone(original));
   delete snapshot.asOf;
   switch (command.type) {
+    case 'set-competitions': {
+      requireValue(typeof command.enabled === 'boolean', 'Estado del filtro no válido.');
+      requireValue(
+        Array.isArray(command.enabledIds) &&
+          command.enabledIds.length <= competitionIds.length &&
+          new Set(command.enabledIds).size === command.enabledIds.length &&
+          command.enabledIds.every((id) => competitionIds.includes(id)),
+        'Selecciona competiciones del catálogo, sin duplicados.',
+      );
+      const protectedIds = new Set(snapshot.competitionSettings?.protectedJourneyIds ?? []);
+      // Only already playable history is protected. Excluded coupons do not become playable
+      // simply because their kickoff passes or settings are saved again.
+      for (const j of snapshot.journeys)
+        if (playable(j) && Date.parse(j.startsAt) <= now) protectedIds.add(j.id);
+      snapshot.competitionSettings = {
+        enabled: command.enabled,
+        enabledIds: command.enabledIds,
+        protectedJourneyIds: [...protectedIds],
+      };
+      break;
+    }
+    case 'classify-journey': {
+      const journey = snapshot.journeys.find((j) => j.id === command.journeyId);
+      requireValue(journey, 'Jornada no encontrada.');
+      requireValue(
+        command.fixtureSignature === fixtureSignature(journey),
+        'El boleto ha cambiado. Recarga y revisa de nuevo los 15 encuentros.',
+      );
+      requireValue(command.confirmed === true, 'Confirma que has revisado los 15 encuentros.');
+      requireValue(
+        Array.isArray(command.competitionIds) &&
+          command.competitionIds.length > 0 &&
+          command.competitionIds.length <= competitionIds.length &&
+          new Set(command.competitionIds).size === command.competitionIds.length &&
+          command.competitionIds.every((id) => competitionIds.includes(id)),
+        'Selecciona todas las competiciones del boleto, sin duplicados.',
+      );
+      snapshot.journeyCompetitions ??= {};
+      snapshot.journeyCompetitions[journey.id] = {
+        fixtureSignature: command.fixtureSignature,
+        competitionIds: command.competitionIds,
+      };
+      break;
+    }
     case 'add-participant': {
       const name = text(command.name, 'Nombre');
       const surname = text(command.surname, 'Apellidos');
@@ -150,6 +207,10 @@ export function applyCommand(original, command) {
     case 'save-predictions': {
       const journey = snapshot.journeys.find((j) => j.id === command.journeyId);
       requireValue(journey, 'Jornada no encontrada.');
+      requireValue(
+        playable(journey),
+        'Este boleto está excluido o pendiente de clasificar sus competiciones.',
+      );
       const participant = snapshot.participants.find((p) => p.id === command.participantId);
       requireValue(
         participant && (participant.active || journey.participantIds.includes(participant.id)),

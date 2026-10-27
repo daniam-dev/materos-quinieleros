@@ -2,6 +2,8 @@
 
 Para entender qué ocurre desde la importación de una jornada hasta la clasificación, consulta el [flujo completo de la aplicación](flujo.md). Esta guía detalla la configuración del acceso y sus permisos.
 
+Para elegir qué boletos juega el grupo, usa **Administración → Competiciones**. La [guía de competiciones](competiciones.md) explica los interruptores, los boletos mixtos y la identificación manual cuando SELAE no aporta el torneo.
+
 ## Desarrollo local
 
 Ejecuta `npm run admin:setup` en una terminal interactiva. Solicita una contraseña de 12 a 256 caracteres y su repetición, sin mostrarla. Genera `.env` con `ADMIN_PASSWORD_HASH` (scrypt con sal aleatoria) y `ADMIN_SESSION_SECRET` (48 bytes aleatorios). No guarda la contraseña en claro. `.env` y `.netlify/` están excluidos de Git, Prettier y comprobaciones de texto.

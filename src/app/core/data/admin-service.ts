@@ -8,9 +8,22 @@ import { AuthService } from '../auth/auth-service';
 export interface AdminSnapshot {
   readonly snapshot: SeasonSnapshot;
   readonly revision: string;
+  readonly competitionCatalog?: readonly { readonly id: string; readonly label: string }[];
+  readonly competitionSettings?: {
+    readonly enabled: boolean;
+    readonly enabledIds: readonly string[];
+  };
 }
 export type AdminCommand =
   | { type: 'sync' }
+  | { type: 'set-competitions'; enabled: boolean; enabledIds: string[] }
+  | {
+      type: 'classify-journey';
+      journeyId: string;
+      competitionIds: string[];
+      fixtureSignature: string;
+      confirmed: boolean;
+    }
   | { type: 'add-participant'; name: string; surname: string }
   | { type: 'set-active'; participantId: string; active: boolean }
   | { type: 'set-current'; journeyId: string | null }

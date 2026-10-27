@@ -11,6 +11,9 @@
   <mq-button [pressed]="tab() === 'journeys'" (activated)="selectTab('journeys')"
     >Jornadas</mq-button
   >
+  <mq-button [pressed]="tab() === 'competitions'" (activated)="selectTab('competitions')"
+    >Competiciones</mq-button
+  >
 </div>
 <div
   #feedback
@@ -33,6 +36,134 @@
   <fieldset class="admin-workspace" [disabled]="busy()" [attr.aria-busy]="busy()">
     <legend class="sr-only">Edición del grupo</legend>
     @switch (tab()) {
+      @case ('competitions') {
+        <section aria-labelledby="competitions-title">
+          <div class="section-heading">
+            <h2 id="competitions-title">Competiciones que jugamos</h2>
+          </div>
+          <p class="admin-help" id="competition-rules">
+            Cada boleto SELAE se juega completo: 14 encuentros y el Pleno. Si mezcla competiciones,
+            todas deben estar habilitadas. Las jornadas anteriores y las quinielas ya cargadas se
+            conservan.
+          </p>
+          <form (ngSubmit)="saveCompetitions()" class="admin-competition-settings">
+            <label class="admin-check">
+              <input
+                type="checkbox"
+                name="filterEnabled"
+                [(ngModel)]="filterEnabled"
+                aria-describedby="competition-rules"
+              />
+              <span>Filtrar boletos por competición</span>
+            </label>
+            <p class="admin-help">
+              Al activar el filtro, los boletos sin identificar quedan pendientes. Con el filtro
+              desactivado se pueden jugar todos los boletos importados.
+            </p>
+            <fieldset class="admin-competition-options" [disabled]="!filterEnabled">
+              <legend>Competiciones habilitadas</legend>
+              @for (competition of state.competitionCatalog ?? []; track competition.id) {
+                <label class="admin-check">
+                  <input
+                    type="checkbox"
+                    role="switch"
+                    [name]="'enabled-' + competition.id"
+                    [ngModel]="enabledCompetitionIds.includes(competition.id)"
+                    (ngModelChange)="toggleCompetition(competition.id, $event)"
+                  />
+                  <span>{{ competition.label }}</span>
+                </label>
+              }
+            </fieldset>
+            <p class="admin-help">
+              Otras competiciones agrupa los torneos fuera de este catálogo. Habilitar una
+              competición no crea partidos ni garantiza cobertura de marcadores.
+            </p>
+            <button class="mq-button mq-button--primary" type="submit">
+              Guardar competiciones
+            </button>
+          </form>
+          <div class="admin-classification">
+            <h3>Identificar un boleto</h3>
+            <p class="admin-help">
+              SELAE no siempre indica la competición. Revisa todos los cruces y selecciona todas las
+              competiciones presentes, incluido el Pleno. Esta confirmación es manual.
+            </p>
+            <div class="admin-form admin-current">
+              <label for="classification-journey">Boleto que quieres identificar</label>
+              <select
+                id="classification-journey"
+                [ngModel]="classificationId()"
+                (ngModelChange)="selectClassification($event)"
+              >
+                <option value="">Selecciona un boleto</option>
+                @for (j of state.snapshot.journeys; track j.id) {
+                  <option [value]="j.id">
+                    Jornada {{ j.number }} · {{ j.seasonId }} · {{ j.participation?.reason }}
+                  </option>
+                }
+              </select>
+            </div>
+            @if (classificationJourney(); as j) {
+              <p class="admin-help">
+                {{ j.participation?.reason }}
+                {{
+                  j.participation?.source === 'admin'
+                    ? 'Identificación confirmada por el administrador.'
+                    : j.participation?.source === 'provider'
+                      ? 'Identificación completa del proveedor deportivo.'
+                      : 'Identificación completa pendiente.'
+                }}
+              </p>
+              <ol class="admin-coupon-fixtures">
+                @for (fixture of j.fixtures; track fixture.id) {
+                  <li>
+                    {{ fixture.home }} · {{ fixture.away }}
+                    @if (fixture.competitionName) {
+                      <span class="muted"> · {{ fixture.competitionName }}</span>
+                    }
+                  </li>
+                }
+                <li>
+                  Pleno: {{ j.pleno.fixture.home }} · {{ j.pleno.fixture.away }}
+                  @if (j.pleno.fixture.competitionName) {
+                    <span class="muted"> · {{ j.pleno.fixture.competitionName }}</span>
+                  }
+                </li>
+              </ol>
+              <form (ngSubmit)="saveClassification()">
+                <fieldset class="admin-competition-options">
+                  <legend>Competiciones presentes en los 15 encuentros</legend>
+                  @for (competition of state.competitionCatalog ?? []; track competition.id) {
+                    <label class="admin-check">
+                      <input
+                        type="checkbox"
+                        [name]="'classify-' + competition.id"
+                        [ngModel]="classifiedCompetitionIds.includes(competition.id)"
+                        (ngModelChange)="toggleCompetition(competition.id, $event, true)"
+                      />
+                      <span>{{ competition.label }}</span>
+                    </label>
+                  }
+                </fieldset>
+                <label class="admin-check admin-confirm-classification">
+                  <input type="checkbox" name="confirmed" [(ngModel)]="classificationConfirmed" />
+                  <span>He revisado los 15 encuentros y seleccionado todas sus competiciones.</span>
+                </label>
+                <button
+                  class="mq-button mq-button--primary"
+                  type="submit"
+                  [disabled]="!classificationConfirmed || !classifiedCompetitionIds.length"
+                >
+                  Confirmar competiciones del boleto
+                </button>
+              </form>
+            } @else if (!state.snapshot.journeys.length) {
+              <p class="admin-help">Todavía no hay boletos importados para identificar.</p>
+            }
+          </div>
+        </section>
+      }
       @case ('people') {
         <section aria-labelledby="people-title">
           <div class="section-heading"><h2 id="people-title">Personas del grupo</h2></div>
@@ -112,6 +243,15 @@
               >Ver sincronización</mq-button
             >
           </mq-empty-state>
+        } @else if (!availableJourneys().length) {
+          <mq-empty-state
+            title="Sin boletos habilitados"
+            message="Revisa las competiciones del grupo e identifica los boletos pendientes."
+          >
+            <mq-button variant="primary" (activated)="selectTab('competitions')"
+              >Revisar competiciones</mq-button
+            >
+          </mq-empty-state>
         } @else {
           <section aria-labelledby="predictions-title">
             <div class="section-heading"><h2 id="predictions-title">Cargar quiniela</h2></div>
@@ -123,7 +263,7 @@
                   [ngModel]="journeyId()"
                   (ngModelChange)="selectJourney($event)"
                 >
-                  @for (j of state.snapshot.journeys; track j.id) {
+                  @for (j of availableJourneys(); track j.id) {
                     <option [value]="j.id">
                       Jornada {{ j.number }} ·
                       {{
@@ -296,11 +436,22 @@
                       ? 'Actualización pendiente; copia conservada'
                       : j.officialResults.length + ' / 14 signos confirmados'
                   }}</span>
+                  <span>{{ j.participation?.reason }}</span>
                 </div>
-                <mq-button (activated)="selectJourney(j.id); selectTab('predictions')"
-                  >Cargar quinielas
-                  <span class="sr-only">de la jornada {{ j.number }}</span></mq-button
-                >
+                <div class="admin-actions">
+                  <mq-button (activated)="classifyJourney(j.id)"
+                    >Identificar competiciones
+                    <span class="sr-only">de la jornada {{ j.number }}</span></mq-button
+                  >
+                  @if (
+                    j.participation?.state !== 'excluded' && j.participation?.state !== 'pending'
+                  ) {
+                    <mq-button (activated)="selectJourney(j.id); selectTab('predictions')"
+                      >Cargar quinielas
+                      <span class="sr-only">de la jornada {{ j.number }}</span></mq-button
+                    >
+                  }
+                </div>
               </li>
             } @empty {
               <li>Todavía no hay jornadas importadas.</li>

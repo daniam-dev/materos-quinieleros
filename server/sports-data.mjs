@@ -46,6 +46,8 @@ export function mergeSports(privateData, sports, now) {
 export function privateUpdate(original, changed, command) {
   const next = structuredClone(original);
   next.participants = changed.participants;
+  if (command.type === 'set-competitions') next.competitionSettings = changed.competitionSettings;
+  if (command.type === 'classify-journey') next.journeyCompetitions = changed.journeyCompetitions;
   if (command.type === 'save-predictions') {
     const updated = changed.journeys.find((j) => j.id === command.journeyId);
     const old = next.journeys.find((j) => j.id === updated.id);
