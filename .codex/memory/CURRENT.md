@@ -1,5 +1,11 @@
 # Estado actual
 
+## 2026-10-27 - Filtro de competiciones publicado en rama
+
+El usuario autoriza subir los cambios. Tras fetch, HEAD y origin/feat/automatic-journeys-results coincidian en 1c34c43; origin/main permanece en 1ca7108, sin desfase que requiera rebase. Publicado cc0c79a2704310065ce9daa99e67e9eb3c75687c (feat: configure competition selection for SELAE coupons), verificado con ls-remote. Incluye los 19 archivos de implementacion, pruebas, documentacion y memoria del filtro. GitHub devuelve statuses vacios para el commit: CI remota y despliegue no acreditados. No se ha fusionado main. Este registro se publica en un commit docs adicional en la misma rama.
+
+Revisados indice y diff; sin rutas privadas, artefactos ni patrones de secretos detectados. Formato, UTF-8/LF y git diff --cached --check aprobados otra vez antes del commit. No se repiten pruebas funcionales: el codigo es el mismo validado en el turno anterior con npm run check (33 Angular, 47 servidor y build) y ocho E2E, cuyos detalles y limites siguen debajo.
+
 ## 2026-10-27 - Filtro de competiciones implementado en local
 
 El usuario elige conservar boletos SELAE completos y habilitarlos o excluirlos segun sus competiciones. Implementados panel Competiciones, catalogo de siete competiciones y grupo Otras competiciones, filtro persistente privado y clasificacion manual explicita de todos los torneos presentes en los 15 cruces. Reglas y motivos en docs/competiciones.md; enlaces desde administracion, flujo y sincronizacion. API aplica filtro publico y rechazo de apuestas excluidas o pendientes; historial ya habilitado al guardar y apuestas cargadas se conservan. No se deduce torneo por equipos o fecha. Clasificacion automatica solo con los 15 torneos reconocidos; manual ligada a hash de cruces/orden. Filtro inicialmente desactivado por compatibilidad. Worker mantiene SELAE y omite OddsPapi para excluidos/pendientes usando configuracion al inicio del ciclo.
