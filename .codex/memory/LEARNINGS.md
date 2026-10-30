@@ -37,3 +37,7 @@ Detectada pérdida de tildes y signos al pasar programas Node con texto Unicode 
 ## OCR optimizado y regresiones - 2026-10-30
 
 Tesseract7 importado con named exports funciona en ng serve, pero el chunk CommonJS optimizado solo exporta default. Comprobar el artefacto construido: resolver default ?? namespace y ejecutar npm run test:build. Las pruebas anteriores sobre ng serve no detectaban el fallo antesdecreateWorker. Recursos OCR200 por si solos no acreditan que la app arranque el lector. Conservar propuestas incompletas como borradores, exigir revision15 y probar errores de worker y modelo; la captura sintetica coloreada reconoce13/15, no prometer OCRperfecto. Informe principal docs/pruebas-ocr-local.md.
+
+## Feedback de validacion en formularios largos - 2026-10-30
+
+Un error local de save() puede no generar red ni consoleerror y quedar milesdepixeles fuera del viewport. Probar formulario revisado pero con metadatos ausentes, no solo caminofeliz que los rellena. Summary cercadeGuardar, foco trasrender y enlacealcampo recuperan accion sin perder borrador. Error de API400 tambien debequedar visible y preservarentrada. Capturastrasreload deben seleccionarjornada reciencreada explicitamente: actualpuede seguirapuntando alprimero, yuna capturaanteriornoacredita nuevoguardado. Evidencia tests e2e/photo-save.spec.ts e informe docs/pruebas-ocr-local.md.

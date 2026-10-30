@@ -122,6 +122,13 @@ y rechazo 400 por cruce duplicado con recuperación. Cuatro auditorías Axe nuev
 explícitamente la nueva jornada 222 tras recargar; no confunden el boleto anterior
 de la batería con la jornada que acaba de guardarse.
 
+Publicado como `2fc6dc4bc174d654f5d8bce9b85ff2ba11e73e76`
+(`fix(admin): surface actionable coupon save validation beside submit`). El
+30/10/2026 a las 18:52:50 UTC, Netlify referencia `main-FIRRJ6MB.js`; ese archivo
+y `chunk-GLKV2PB5.js` coinciden por SHA-256 con el artefacto probado. GitHub no
+devuelve estados de CI para este commit. No se han guardado jornadas reales ni
+usado credenciales de Daniel en producción para validar esta corrección.
+
 ### Corrección anterior del arranque del OCR
 
 Publicado en `origin/main` como

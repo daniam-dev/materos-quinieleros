@@ -1,5 +1,13 @@
 # Estado actual
 
+## 2026-10-30 - Guardado del boleto: validacion visible y recuperable
+
+Incidencia reproducida en build anterior con admin codex-local:15crucescompletos y revisionmarcada,metadatosvacios,Guardar0POST y0pageerrors; errorcierre existe pero y=-2277fuera deviewport. Completar numero/fecha/cierre guarda. Corregido saveIssue juntoalboton,focusafterrender y enlacefocuscampo; validacion explicita numeroentero1-999,fecha,cierreMadrid,primerequipo/categoria incompleto conposicion. Borrador/orden intactos, editar invalida confirmacion y limpia avisoobsoleto. Rechazosservidor conservan resumenparent enfocado.
+
+Publicado2fc6dc4bc174d654f5d8bce9b85ff2ba11e73e76 enorigin/main. Informeprincipal docs/pruebas-ocr-local.md. Checkcompleto42Angular+78server+formato,texto,lint,tipos,build499.50kB;9E2Edev40.5s y8E2Ebuild26.6s. Nuevas2 cubren metadatos/categoria9incompletos0POST,linkfocus,DSTambiguo,rechazoduplicado400 yrecuperacionguardar1POST+recarga orden14/Pleno. PNGreconstruido segundaimagen sinazulprimera;no archivooriginalaccesible. Axe4nuevosestados0 yoverflow0 a1440/390. Impeccable independiente ship; detector[]degradado. Capturainicialsuccessmostraba anterior221 alrecargar;testcorregidoselecciona222yverificalabels14/Pleno,recapturayveredictoship. No cambioproductoparaestefallodetest.
+
+Netlify18:52:50UTC main-FIRRJ6MB ychunkadminGLKV2PB5 igualesporSHA256 albuildprobado. SinestadosCI GitHub, sincredencialesDaniel ni escriturasproduccion. OddsPapi siguependiente ysinconsumo;TODOeficienciaintacto. Puertoslocalesliberados.
+
 ## 2026-10-30 - Orden del boleto verificado y regresiones reforzadas
 
 Requisito explicito: respetar estrictamente numeros1a15 del boleto en Administracion. Verificado parseCouponText asigna rows[number-1], panel itera indices y servidor conserva map/slice14 y pleno.fixture15. Sin cambio funcional necesario. Tests ahora comparan TODA propuesta reconocida contra su posicion/categoria antes de corregir, persistencia14+Pleno y etiquetas reales del panel tras recargar. Dos unitarias nuevas cubren OCRlineas desordenadas y huecos1/9 sin desplazamiento. npm test42, tipos,texto y E2Eoptimizado dirigido1/1(7.4s) aprobados; no repetir suitecompleta innecesariamente. PNG sintetico coloreado13/15 sigue filas1/9vacias; no se ha ejecutado OCR sobre archivooriginal adjunto. Referencia15 transcrita de imagen en e2e/coupon-fixture.ts; informe docs/pruebas-ocr-local.md. No app/UI ni OddsPapi modificados.
