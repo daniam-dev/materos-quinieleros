@@ -1,5 +1,11 @@
 # Estado actual
 
+## 2026-10-30 - Pruebas productivas publicadas y guia de primera importacion
+
+El usuario autoriza subir los cambios. Fetch confirma main sin desfase; publicado 937c2c60752ef915a6d9c08b3680ce79b13816a2 (test: add read-only production validation suite and findings) en origin/main, verificado por ls-remote. Incluye nueve archivos: bateria, configuracion/script, informe/enlace y memoria. No incluye correcciones de los hallazgos. Formato, texto (144 archivos) y diff staged check aprobados; no se repiten las pruebas productivas ya ejecutadas ni las locales. Secretos y artefactos permanecen fuera del commit.
+
+Guia contrastada con admin-page y synchronize: Administracion > Jornadas > Reintentar sincronizacion solicita descubrimiento/importacion SELAE sin necesitar OddsPapi. Revisar numero, fecha y los 15 cruces antes de cargar apuestas; pueden aparecer varios boletos, actual se selecciona automaticamente y recuperacion historica puede requerir ciclos. Enfriamiento de un minuto, con limite de cuatro boletos/18 segundos operativos por ejecucion. Si filtro activo deja boleto pendiente/excluido, identificar sus competiciones en el panel; luego Quinielas, participante, 14 signos (maximo dos dobles) y Pleno. No se ha ejecutado importacion en nombre del usuario. El cron sigue pendiente de verificar. Registro documental adicional en main.
+
 ## 2026-10-30 - Bateria y auditoria de produccion sin OddsPapi
 
 El usuario confirma despliegue y login admin y encarga pruebas con agentes e informe. Tres agentes revisan UI publica, API/privacidad y operacion; revision principal cubre API/panel privados con sesion de diez minutos firmada dentro del proceso usando configuracion local, sin mostrar secretos ni probar contrasena. Creados cuatro archivos e2e-production, playwright.production.config.ts, npm run test:production y docs/pruebas-produccion.md, enlazado desde docs/verificacion.md. Sin cambios de datos productivos, sincronizacion manual, consumo OddsPapi, commit o push.
