@@ -244,7 +244,11 @@ export async function synchronize({
       checkedAt: iso(clock()),
       ...(diagnostics.length ? { diagnostics } : {}),
       ...(errors || data.journeys.some((j) => j.syncStatus === 'error')
-        ? { message: safeFailure('SELAE') }
+        ? {
+            message: diagnostics.some((d) => d.reason === 'http-403')
+              ? 'SELAE ha rechazado el acceso desde el servidor (HTTP 403). No se han podido importar o actualizar las jornadas; se conserva la copia anterior.'
+              : safeFailure('SELAE'),
+          }
         : { message: 'Jornadas y signos oficiales actualizados.' }),
     };
     await save();

@@ -125,3 +125,41 @@ texto del selector en PowerShell, sin ser un fallo del producto.
 
 Los 33 tests Angular, 47 de servidor y ocho E2E locales aprobados durante la
 integración de main son evidencia previa; no se han repetido en este encargo.
+
+## Incidencia de primera importación — 30/10/2026
+
+La captura posterior del usuario y una comprobación autenticada identifican dos
+problemas distintos:
+
+- **Revisión administrativa:** GET privado devuelve `initial`, pero un POST inmediato
+  con `If-Match: initial` recibe 409. GET público con ese encabezado recibe 412 antes
+  del handler. Se sustituye por `X-MQ-Revision`, conservando guardas de revisión y CAS.
+  La corrección `53d2db3` está publicada y verificada en producción: revisión válida
+  llega al rechazo de comando desconocido (400), origen ajeno da 403 y revisión
+  inválida da 409. Las dos pruebas privadas pasan sin escribir datos del grupo.
+- **Acceso a SELAE desde Netlify:** una sincronización manual controlada con la
+  revisión corregida devuelve 200, pero el estado deportivo comunica `http-403`
+  tanto en `proximosv3` como en `fechav3`. Se observa a las 12:07 de Madrid; siguen
+  cero jornadas. La revisión privada no cambia. Es una denegación del proveedor
+  desde ese entorno, no evidencia de ausencia de quiniela.
+
+Desde la estación de desarrollo, el mismo servicio oficial responde 200 y permite
+leer la jornada 18, ID `1327306063`, sorteo del 01/11/2026 y cierre publicado
+31/10/2026 14:00 de Madrid, con sus quince encuentros. No se inventa ni se copia ese
+boleto a producción para ocultar la restricción del servidor. El acceso al endpoint
+desde desarrollo no acredita acceso desde Netlify.
+
+También se corrige la interpretación de la cadena oficial «sin registros» de
+`fechav3`: una fecha sin sorteo es una lista vacía, no una caída. Cuatro regresiones
+SELAE verifican ese caso y diagnósticos acotados sin respuestas o URLs internas.
+La comprobación completa local y los ocho E2E pasan antes de publicar `53d2db3`.
+
+Se añade un escenario de preparación operativa que **falla** cuando SELAE no está
+en estado `ok` o no hay boletos: este requisito ya no queda oculto tras omisiones
+de las comprobaciones de integridad. El informe inicial de 28 escenarios conserva
+su resultado histórico; la batería tiene ahora 29 escenarios.
+
+**Bloqueo restante:** resolver el acceso autorizado a una fuente oficial desde
+el entorno de producción antes de acreditar la importación. La respuesta 403 no
+identifica por sí sola si la regla es geográfica, de IP, de cabeceras u otra política
+del proveedor. Añadir OddsPapi no resuelve esta importación y no se ha consumido su cuota.

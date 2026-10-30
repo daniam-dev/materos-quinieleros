@@ -1,5 +1,9 @@
 # Estado actual
 
+## 2026-10-30 - 409 corregido; importacion bloqueada por HTTP 403 SELAE
+
+Publicado y desplegado 53d2db3e0f575ad644f128466f3fc244b22ea28c: X-MQ-Revision sustituye If-Match consumido por Netlify, manteniendo revisiones/CAS; fechas SELAE sin sorteo ya no son error. Check completo, ocho E2E y empaquetado Functions pasan. Dos pruebas privadas reales pasan con encabezado nuevo. Sincronizacion controlada 11:07Z confirma HTTP403 de Netlify a proximosv3 y fechav3; cero jornadas y revision privada intacta, OddsPapi unconfigured sin cuota. Desde desarrollo jornada18 ID1327306063 se lee completa; cierre31/10 14:00 Madrid. El 403 sigue sin resolver y su politica concreta es desconocida. Diagnostico/informe en docs/pruebas-produccion.md; nuevo caso operativo falla expresamente por este bloqueo. Mensaje HTTP403 y registro se publican en commit adicional. No se cambiaron personas/apuestas ni se importo boleto.
+
 ## 2026-10-30 - Pruebas productivas publicadas y guia de primera importacion
 
 El usuario autoriza subir los cambios. Fetch confirma main sin desfase; publicado 937c2c60752ef915a6d9c08b3680ce79b13816a2 (test: add read-only production validation suite and findings) en origin/main, verificado por ls-remote. Incluye nueve archivos: bateria, configuracion/script, informe/enlace y memoria. No incluye correcciones de los hallazgos. Formato, texto (144 archivos) y diff staged check aprobados; no se repiten las pruebas productivas ya ejecutadas ni las locales. Secretos y artefactos permanecen fuera del commit.

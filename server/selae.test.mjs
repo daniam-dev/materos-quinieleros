@@ -54,6 +54,7 @@ test('SELAE: diagnóstico limitado conserva etapa y HTTP sin copiar respuesta ni
   });
   const state = (await sportsStore.read()).data.sync.selae;
   assert.equal(state.state, 'error');
+  assert.match(state.message, /HTTP 403/);
   assert.deepEqual(state.diagnostics, [
     { service: 'proximosv3', reason: 'http-403' },
     { service: 'fechav3', reason: 'http-403' },

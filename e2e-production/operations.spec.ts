@@ -1,5 +1,19 @@
 import { expect, test } from '@playwright/test';
 
+test('operación: importación SELAE lista para cargar quinielas reales', async ({ request }) => {
+  const response = await request.get('/api/season');
+  expect(response.status()).toBe(200);
+  const snapshot = await response.json();
+  expect(
+    snapshot.synchronization?.selae?.state,
+    JSON.stringify(snapshot.synchronization?.selae),
+  ).toBe('ok');
+  expect(
+    snapshot.journeys.length,
+    'Debe haber al menos un boleto importado para operar',
+  ).toBeGreaterThan(0);
+});
+
 test('operación: snapshot público fresco y selección coherente de jornada', async ({ request }) => {
   const response = await request.get('/api/season');
   expect(response.status()).toBe(200);
