@@ -1,5 +1,11 @@
 # Estado actual
 
+## 2026-10-30 - Automatizacion y competiciones integradas en main
+
+El usuario autoriza integrar la rama en main para continuar la puesta en servicio. Fetch confirma main sin divergencia; integracion fast-forward de feat/automatic-journeys-results y push a origin/main completados en 998438afc842eb82acf726f409dc9ce1251ce87f, confirmado con ls-remote. Incluye el codigo publicado previamente en 15e8b99 y el registro de preparacion 998438a. El primer cambio de rama fue rechazado por ROADMAP local pendiente; se conservo en commit antes de integrar, sin perder cambios.
+
+Validacion en este turno: npm run check aprobado (33 Angular, 47 servidor, formato, texto, lint, tipos y build 498,24 kB); ocho E2E aprobados (40,5 s) con proveedores simulados y almacenamiento temporal. Puertos 4200/8888 sin listeners al terminar. No se han leido ni modificado secretos ni consumido cuota OddsPapi. El usuario afirma que los dos secretos administrativos estan configurados en Netlify; no se ha inspeccionado ese entorno. Push no acredita despliegue: comprobar Published en Netlify y despues acceso, persistencia, privacidad, SELAE y cron real. ODDSPAPI_KEY se configurara despues de las primeras pruebas por decision del usuario. Este registro se publica en un commit documental adicional.
+
 ## 2026-10-27 - Filtro de competiciones publicado en rama
 
 El usuario autoriza subir los cambios. Tras fetch, HEAD y origin/feat/automatic-journeys-results coincidian en 1c34c43; origin/main permanece en 1ca7108, sin desfase que requiera rebase. Publicado cc0c79a2704310065ce9daa99e67e9eb3c75687c (feat: configure competition selection for SELAE coupons), verificado con ls-remote. Incluye los 19 archivos de implementacion, pruebas, documentacion y memoria del filtro. GitHub devuelve statuses vacios para el commit: CI remota y despliegue no acreditados. No se ha fusionado main. Este registro se publica en un commit docs adicional en la misma rama.
