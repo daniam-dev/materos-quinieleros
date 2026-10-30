@@ -31,6 +31,7 @@ function setup(options = {}) {
     store,
     seed: structuredClone(seed),
     env: options.env ?? env,
+    sync: options.sync,
     clock: () => now,
   });
   const request = (path, { method = 'GET', body, cookie = '', revision, headers = {} } = {}) =>
@@ -289,6 +290,60 @@ test('revisión obsoleta y escrituras simultáneas no pisan cambios', async () =
   assert.equal((await save('Tres')).status, 409);
   const state = await (await ctx.request('/api/admin', { cookie })).json();
   assert.equal(state.snapshot.participants.length, seed.participants.length + 1);
+});
+
+test('revisión de aplicación atraviesa un proxy que consume If-Match sin permitir escrituras obsoletas', async () => {
+  const ctx = setup();
+  const cookie = await ctx.login();
+  const get = async () => (await ctx.request('/api/admin', { cookie })).json();
+  const initial = await get();
+  assert.equal(initial.revision, 'initial');
+  const save = (headers = {}) =>
+    ctx.request('/api/admin', {
+      method: 'POST',
+      cookie,
+      body: { type: 'add-participant', name: 'Proxy', surname: 'Prueba' },
+      // No If-Match reaches the function, matching the hosting proxy behavior.
+      headers,
+    });
+  assert.equal((await save()).status, 409);
+  assert.equal((await save({ 'X-MQ-Revision': 'stale' })).status, 409);
+  assert.equal((await get()).snapshot.participants.length, seed.participants.length);
+  assert.equal((await save({ 'X-MQ-Revision': initial.revision })).status, 200);
+  const updated = await get();
+  assert.notEqual(updated.revision, initial.revision);
+  assert.equal(updated.snapshot.participants.length, seed.participants.length + 1);
+  assert.equal((await save({ 'X-MQ-Revision': initial.revision })).status, 409);
+  // A stale application revision cannot be bypassed by a matching legacy header.
+  assert.equal(
+    (await save({ 'X-MQ-Revision': initial.revision, 'If-Match': updated.revision })).status,
+    409,
+  );
+  assert.equal((await get()).snapshot.participants.length, seed.participants.length + 1);
+});
+
+test('sincronización manual acepta la revisión dedicada y conserva la revisión privada', async () => {
+  let calls = 0;
+  const ctx = setup({
+    sync: async () => {
+      calls += 1;
+      return { synchronized: true };
+    },
+  });
+  const cookie = await ctx.login();
+  const before = await (await ctx.request('/api/admin', { cookie })).json();
+  const sync = (headers = {}) =>
+    ctx.request('/api/admin', { method: 'POST', cookie, body: { type: 'sync' }, headers });
+  assert.equal((await sync()).status, 409);
+  assert.equal((await sync({ 'X-MQ-Revision': 'stale' })).status, 409);
+  assert.equal(calls, 0);
+  const result = await sync({ 'X-MQ-Revision': before.revision });
+  assert.equal(result.status, 200);
+  assert.deepEqual(await result.json(), { synchronized: true });
+  assert.equal(calls, 1);
+  const after = await (await ctx.request('/api/admin', { cookie })).json();
+  assert.equal(after.revision, before.revision);
+  assert.deepEqual(after.snapshot, before.snapshot);
 });
 
 test('resultados futuros y pleno no se filtran al público antes de publicarse', () => {

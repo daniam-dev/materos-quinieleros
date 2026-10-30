@@ -1,4 +1,20 @@
 const base = 'https://www.loteriasyapuestas.es/servicios/';
+const emptyDate = 'No se ha encontrado ningún registro para los parámetros introducidos.';
+
+class SelaeError extends Error {
+  constructor(service, reason) {
+    super('SELAE no disponible. Se conserva la copia guardada.');
+    this.service = service;
+    this.reason = reason;
+  }
+}
+
+// Only our bounded codes can reach the shared snapshot. Never include upstream bodies/URLs.
+export function selaeDiagnostic(error) {
+  return error instanceof SelaeError
+    ? { service: error.service, reason: error.reason }
+    : { service: 'validation', reason: 'invalid-format-or-identity' };
+}
 const formatter = new Intl.DateTimeFormat('sv-SE', {
   timeZone: 'Europe/Madrid',
   year: 'numeric',
@@ -225,12 +241,33 @@ export function selaeProvider(fetcher = fetch) {
   async function get(service, params) {
     const url = new URL(service, base);
     url.search = new URLSearchParams({ game_id: 'LAQU', ...params });
-    const response = await fetcher(url, {
-      redirect: 'error',
-      signal: AbortSignal.timeout(3000),
-    });
-    if (!response.ok) throw new Error('SELAE no disponible. Se conserva la copia guardada.');
-    return drawRows(await response.json());
+    let response;
+    try {
+      response = await fetcher(url, {
+        redirect: 'error',
+        signal: AbortSignal.timeout(3000),
+        headers: { Accept: 'application/json' },
+      });
+    } catch (error) {
+      throw new SelaeError(
+        service,
+        error?.name === 'TimeoutError' || error?.name === 'AbortError' ? 'timeout' : 'network',
+      );
+    }
+    if (!response.ok) throw new SelaeError(service, `http-${response.status}`);
+    let data;
+    try {
+      data = await response.json();
+    } catch {
+      throw new SelaeError(service, 'invalid-json');
+    }
+    // SELAE returns a JSON string (not []) on dates with no coupon.
+    if (service === 'fechav3' && data === emptyDate) return [];
+    try {
+      return drawRows(data);
+    } catch {
+      throw new SelaeError(service, 'invalid-response');
+    }
   }
   return {
     discover: async () => (await get('proximosv3', { num: '3' })).map(normalizeListing),

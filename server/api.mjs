@@ -119,7 +119,11 @@ export function createApi({ store, seed, env, sportsStore, sync, clock = Date.no
           },
         });
       }
-      if (request.headers.get('if-match') !== revision)
+      // Keep application revisions out of HTTP conditional-request headers: the hosting
+      // proxy can consume If-Match before the request reaches this function.
+      const suppliedRevision =
+        request.headers.get('x-mq-revision') ?? request.headers.get('if-match');
+      if (suppliedRevision !== revision)
         throw new ApiError(
           409,
           'Los datos han cambiado. Recarga el panel antes de volver a guardar.',

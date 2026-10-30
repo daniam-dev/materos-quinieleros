@@ -52,7 +52,7 @@ export class AdminService {
   }
   async save(command: AdminCommand, revision: string): Promise<void> {
     await firstValueFrom(
-      this.http.post('/api/admin', command, { headers: { 'If-Match': revision } }),
+      this.http.post('/api/admin', command, { headers: { 'X-MQ-Revision': revision } }),
     );
   }
   message(error: unknown): string {

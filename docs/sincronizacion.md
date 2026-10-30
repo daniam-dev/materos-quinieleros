@@ -30,6 +30,11 @@ Las horas locales se convierten usando `Europe/Madrid`, con invierno/verano. Se 
 
 Las jornadas pendientes se revisan en cada ejecución por turnos; las confirmadas, cada 24 horas, para recoger correcciones. Una respuesta completa válida puede corregir o retirar un signo. Un signo sin cambios conserva su fecha de publicación anterior. SELAE puede confirmar una X sin que exista marcador: no se inventa un 0–0 ni se fuerza la equivalencia con goles deportivos.
 
+`fechav3` devuelve una cadena JSON concreta cuando no existe sorteo para una fecha:
+se interpreta como lista vacía, sin marcar caída del proveedor. Otros textos siguen
+rechazándose. Los fallos guardan un diagnóstico acotado por servicio y causa
+(`http-403`, `timeout`, `network`, JSON/formato inválido), sin cuerpo de respuesta ni URL.
+
 La selección actual y el cierre están en [Datos](datos.md). Se conservan los IDs de temporada existentes (`2026-27`); al cambiar de temporada, la copia toma la de la jornada actual. El selector conserva todas las anteriores.
 
 ## OddsPapi: identidad y resultados

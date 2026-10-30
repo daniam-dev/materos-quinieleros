@@ -57,6 +57,16 @@ test.describe('Administración real sin modificar datos', () => {
     expect(typeof before.revision).toBe('string');
     // This deliberately unknown command cannot write even if a guard regresses.
     const command = { type: 'read-only-production-probe' };
+    const transportedRevision = await request.post('/api/admin', {
+      headers: {
+        ...cookie,
+        Origin: 'https://materosquinieleros.netlify.app',
+        'X-MQ-Revision': before.revision,
+      },
+      data: command,
+    });
+    // Correctly delivered revision reaches the unknown-command guard, never a write.
+    expect(transportedRevision.status()).toBe(400);
     const wrongOrigin = await request.post('/api/admin', {
       headers: { ...cookie, Origin: 'https://example.org' },
       data: command,
@@ -66,7 +76,7 @@ test.describe('Administración real sin modificar datos', () => {
       headers: {
         ...cookie,
         Origin: 'https://materosquinieleros.netlify.app',
-        'If-Match': `deliberately-invalid-${randomBytes(16).toString('hex')}`,
+        'X-MQ-Revision': `deliberately-invalid-${randomBytes(16).toString('hex')}`,
       },
       data: command,
     });

@@ -30,6 +30,11 @@ Cookie firmada de ocho horas con `HttpOnly`, `SameSite=Strict`, ámbito `/api` y
 
 Cada escritura exige origen coincidente, JSON de hasta 32 KiB, sesión y revisión actual. El servidor impide cambiar roles, quitar al admin, registrar duplicados o guardar quinielas incompletas. Las bajas conservan el histórico. Todas las respuestas API llevan `Cache-Control: no-store`.
 
+El navegador envía la revisión en `X-MQ-Revision`. `If-Match` queda como compatibilidad
+para clientes anteriores, pero Netlify procesa ese encabezado HTTP antes de la
+función y puede impedir que llegue: no se debe usar como transporte de la revisión
+de aplicación. La comprobación de revisión y el CAS de Blobs se mantienen.
+
 La respuesta pública elimina pronósticos y Pleno antes del cierre y filtra resultados oficiales futuros. El panel recibe una copia privada separada del store público Angular. Blobs usa consistencia `strong` y condiciones `onlyIfNew` / `onlyIfMatch` con ETag. Una revisión obsoleta devuelve 409 y pide recargar; no sobrescribe en silencio. Sin ETag, falla cerrado. La metadata guarda el último autor, instante e identificador de operación; no constituye un historial completo de auditoría.
 
 El acceso tiene [límite de peticiones en Netlify](https://docs.netlify.com/manage/security/secure-access-to-sites/rate-limiting/): 20 por IP y minuto para `/api/auth`, incluyendo consultas de sesión. Netlify puede tardar hasta diez segundos en aplicar el bloqueo. El servidor local limita los intentos de login; no sustituye la verificación remota.

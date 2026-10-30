@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { allFixtures, emptySports, settled } from './sports-data.mjs';
-import { drawIdentity, parseDraw } from './providers/selae.mjs';
+import { drawIdentity, parseDraw, selaeDiagnostic } from './providers/selae.mjs';
 import { participation, playable } from './competitions.mjs';
 import {
   accountQuota,
@@ -155,6 +155,15 @@ export async function synchronize({
     const now = clock();
     const candidates = new Map(Object.entries(data.pendingDraws ?? {}));
     let discoveryFailed = false;
+    const diagnostics = [];
+    const diagnose = (error) => {
+      const detail = selaeDiagnostic(error);
+      if (
+        diagnostics.length < 4 &&
+        !diagnostics.some((d) => JSON.stringify(d) === JSON.stringify(detail))
+      )
+        diagnostics.push(detail);
+    };
     if (force || !data.discoveredAt || now - Date.parse(data.discoveredAt) >= 6 * hour) {
       try {
         for (const row of await selae.discover()) {
@@ -162,8 +171,9 @@ export async function synchronize({
           candidates.set(identity.drawId, identity);
         }
         data.discoveredAt = iso(clock());
-      } catch {
+      } catch (error) {
         discoveryFailed = true;
+        diagnose(error);
       }
     }
     // Rotating seven-day recovery discovers a currently playing coupon on first setup,
@@ -183,8 +193,9 @@ export async function synchronize({
             const identity = drawIdentity(row);
             candidates.set(identity.drawId, identity);
           }
-        } catch {
+        } catch (error) {
           discoveryFailed = true;
+          diagnose(error);
         }
       }
     }
@@ -218,8 +229,9 @@ export async function synchronize({
         if (index < 0) data.journeys.push(next);
         else data.journeys[index] = next;
         delete data.pendingDraws[identity.drawId];
-      } catch {
+      } catch (error) {
         errors++;
+        diagnose(error);
         if (index >= 0) {
           data.journeys[index].syncStatus = 'error';
           data.journeys[index].checkedAt = iso(clock());
@@ -230,6 +242,7 @@ export async function synchronize({
     data.sync.selae = {
       state: errors || data.journeys.some((j) => j.syncStatus === 'error') ? 'error' : 'ok',
       checkedAt: iso(clock()),
+      ...(diagnostics.length ? { diagnostics } : {}),
       ...(errors || data.journeys.some((j) => j.syncStatus === 'error')
         ? { message: safeFailure('SELAE') }
         : { message: 'Jornadas y signos oficiales actualizados.' }),

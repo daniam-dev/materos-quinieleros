@@ -1,4 +1,5 @@
 import { HttpErrorResponse, provideHttpClient } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { AuthService } from '../auth/auth-service';
@@ -13,11 +14,23 @@ describe('AdminService: errores de acceso', () => {
     TestBed.configureTestingModule({
       providers: [
         provideHttpClient(),
+        provideHttpClientTesting(),
         { provide: AuthService, useValue: { expire } },
         { provide: Router, useValue: { navigateByUrl } },
       ],
     });
     service = TestBed.inject(AdminService);
+  });
+  afterEach(() => TestBed.inject(HttpTestingController).verify());
+  it('envía la revisión privada sin activar las precondiciones HTTP del proxy', async () => {
+    const saved = service.save({ type: 'sync' }, 'initial');
+    const request = TestBed.inject(HttpTestingController).expectOne('/api/admin');
+    expect(request.request.method).toBe('POST');
+    expect(request.request.headers.get('X-MQ-Revision')).toBe('initial');
+    expect(request.request.headers.has('If-Match')).toBe(false);
+    expect(request.request.body).toEqual({ type: 'sync' });
+    request.flush({ saved: true });
+    await saved;
   });
   it('muestra el rechazo de origen sin convertirlo en una sesión caducada', () => {
     const message = service.message(
