@@ -21,3 +21,9 @@ Implementada y validada localmente el 27/10. Sustituye la propuesta de integraci
 ## 2026-10-27 - Seleccion de competiciones en administracion
 
 Alternativa resuelta por el usuario: conservar boletos SELAE completos y seleccionar segun sus competiciones. Implementado y validado localmente; ver CURRENT, DECISIONS y docs/competiciones.md. Otras competiciones agrupa torneos fuera del catalogo inicial; no se ha encargado un catalogo personalizado por torneo. Publicacion, despliegue y cobertura deportiva real siguen sin acreditarse.
+
+## Secuencia de puesta en servicio acordada - 2026-10-30
+
+El usuario pide primero una guia para configurar los secretos administrativos actuales en Netlify, despues realizar pruebas y finalmente configurar ODDSPAPI_KEY. La clave deportiva queda pospuesta hasta esas comprobaciones. En este turno solo se prepara la guia: no se configuran valores remotos, no se despliega ni se consume cuota.
+
+Actualizacion del 30/10: el usuario confirma que las variables administrativas en Netlify estan listas. Es una afirmacion del usuario; no se ha inspeccionado la configuracion remota ni verificado su aplicacion mediante un nuevo despliegue. Siguiente paso: despliegue y pruebas; OddsPapi sigue pospuesto.
