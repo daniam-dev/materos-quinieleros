@@ -60,6 +60,7 @@ test('optimized build reads the colored coupon through the real OCR worker', asy
       number: index + 1,
       home: (row.querySelector(`[id="coupon-home-${index}"]`) as HTMLInputElement).value,
       away: (row.querySelector(`[id="coupon-away-${index}"]`) as HTMLInputElement).value,
+      category: (row.querySelector(`[id="coupon-category-${index}"]`) as HTMLSelectElement).value,
     })),
   );
   expect(
@@ -67,6 +68,23 @@ test('optimized build reads the colored coupon through the real OCR worker', asy
       (row, index) => row.home === couponPairs[index][0] && row.away === couponPairs[index][1],
     ).length,
   ).toBeGreaterThanOrEqual(8);
+  // Every proposal must match its printed number, before any human correction.
+  expect(proposed).toHaveLength(15);
+  for (const [index, row] of proposed.entries()) {
+    const [home, away, category] = couponPairs[index];
+    expect(row.number).toBe(index + 1);
+    if (row.home || row.away || row.category) {
+      expect(row).toEqual({
+        number: index + 1,
+        home,
+        away,
+        category: category === 'F' ? 'women' : 'men',
+      });
+    } else {
+      expect(row).toEqual({ number: index + 1, home: '', away: '', category: '' });
+    }
+  }
+  expect(proposed.filter((row) => row.home).length).toBe(recognized);
   console.log('Colored fixture OCR proposal:', JSON.stringify(proposed));
   await page.screenshot({
     path: '.impeccable/review/photo-build-proposal-desktop.png',
@@ -116,6 +134,11 @@ test('optimized build reads the colored coupon through the real OCR worker', asy
     closesAt: '2099-10-31T13:00:00.000Z',
   });
   expect(created.fixtures).toHaveLength(14);
+  expect(created.pleno.fixture).toMatchObject({
+    home: couponPairs[14][0],
+    away: couponPairs[14][1],
+    category: 'men',
+  });
   for (const [index, [home, away, category]] of couponPairs.slice(0, 14).entries()) {
     expect(created.fixtures[index]).toMatchObject({
       home,
@@ -130,7 +153,27 @@ test('optimized build reads the colored coupon through the real OCR worker', asy
   await page.getByRole('button', { name: 'Guardar quiniela', exact: true }).click();
   await expect(page.locator('.admin-notice')).toHaveText('Quiniela guardada.');
   await page.reload();
+  const reloaded = await (await page.request.get('/api/admin')).json();
+  const persisted = reloaded.snapshot.journeys.find(
+    (journey: { id: string }) => journey.id === created.id,
+  );
+  expect(
+    persisted.fixtures.map((fixture: { home: string; away: string }) => [
+      fixture.home,
+      fixture.away,
+    ]),
+  ).toEqual(couponPairs.slice(0, 14).map(([home, away]) => [home, away]));
+  expect(persisted.pleno.fixture).toMatchObject({
+    home: couponPairs[14][0],
+    away: couponPairs[14][1],
+  });
   await page.getByLabel('Jornada', { exact: true }).selectOption(created.id);
+  await expect(page.locator('.prediction-editor > legend')).toHaveText(
+    couponPairs.slice(0, 14).map(([home, away], index) => `${index + 1}. ${home} · ${away}`),
+  );
+  await expect(page.locator('.admin-pleno > legend')).toHaveText(
+    `Pleno al 15 · ${couponPairs[14][0]} · ${couponPairs[14][1]}`,
+  );
   await expect(page.getByLabel('Goles del local')).toHaveValue('M');
   const publicState = await (await page.request.get('/api/season')).json();
   const publicJourney = publicState.journeys.find(

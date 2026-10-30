@@ -25,6 +25,33 @@ describe('borrador desde foto o texto', () => {
     expect(draft.rows[4]).toEqual({ home: '', away: '', category: '' });
     expect(draft.rows[5].home).toBe('Local 6');
   });
+  it('usa el numero impreso aunque las lineas lleguen desordenadas del OCR', () => {
+    const lines = text.split('\n');
+    const draft = parseCouponText([lines[14], ...lines.slice(0, 14).reverse()].join('\n'));
+    expect(draft.recognized).toBe(15);
+    for (const [index, row] of draft.rows.entries()) {
+      expect(row.home).toBe(`Local ${index + 1}`);
+      expect(row.away).toBe(`Visitante ${index + 1}`);
+    }
+  });
+  it('no desplaza las posiciones si faltan el 1 y el 9, como en la captura coloreada', () => {
+    const draft = parseCouponText(
+      text
+        .split('\n')
+        .filter((_, index) => index !== 0 && index !== 8)
+        .join('\n'),
+    );
+    expect(draft.recognized).toBe(13);
+    for (const [index, row] of draft.rows.entries()) {
+      if (index === 0 || index === 8) {
+        expect(row).toEqual({ home: '', away: '', category: '' });
+      } else {
+        expect(row.home).toBe(`Local ${index + 1}`);
+        expect(row.away).toBe(`Visitante ${index + 1}`);
+      }
+    }
+    expect(draft.rows[14]).toEqual({ home: 'Local 15', away: 'Visitante 15', category: 'men' });
+  });
   it('deja para revisión una categoría ambigua y rechaza números repetidos', () => {
     expect(parseCouponText(text.replace('Local 1 (M)', 'Local 1 (F)')).recognized).toBe(14);
     expect(() => parseCouponText(text + '\n1. Otro (M) - Equipo (M)')).toThrow(/dos veces/);

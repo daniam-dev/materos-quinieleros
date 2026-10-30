@@ -68,6 +68,16 @@ Las capturas y las comprobaciones de anchura cubren escritorio de 1440 píxeles 
 móvil de 390 píxeles. Las comprobaciones de Axe son automatizadas y no constituyen
 una certificación completa de accesibilidad.
 
+Comprobación adicional del orden: la propuesta OCR se compara posición por
+posición con los quince cruces de referencia, antes de cualquier corrección
+manual. Cada cruce reconocido debe coincidir exactamente con su número y categoría;
+los huecos se conservan. Después de guardar y recargar se comprueban tanto los
+catorce encuentros persistidos como sus etiquetas en Administración, y el Pleno
+Athletic Club (M) - Real Sociedad (M) por separado. Dos regresiones unitarias
+cubren líneas OCR desordenadas y la ausencia de las posiciones 1 y 9.
+Esta ampliación supera `npm test` (42 pruebas), tipos, comprobación de texto y
+el recorrido OCR optimizado con las nuevas aserciones (1 prueba, 7,4 s).
+
 `npm run check` supera formato, texto, lint, tipos, las pruebas y el build
 optimizado (499,50 kB iniciales). Las tres Functions se empaquetan con esbuild.
 La búsqueda de usuario y contraseña de prueba en navegador compilado y Functions

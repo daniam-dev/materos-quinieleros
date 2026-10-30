@@ -53,3 +53,7 @@ El usuario confirma que el signo ganador se obtenga automaticamente de OddsPapi,
 ## Administrador de pruebas local - 2026-10-30
 
 Peticion explicita: crear usuario SOLO localhost con el mismo flujo hasheado para probar sin credenciales personales. Implementado launcher codex-local: hash scrypt/secreto nuevos, mismas cookies y propietario interno, datos temporales separados, sin .env. No nuevo participante ni acceso de prueba en Netlify; Daniel conserva acceso habitual. Guia docs/administracion.md e informe docs/pruebas-ocr-local.md.
+
+## Orden obligatorio de encuentros - 2026-10-30
+
+El usuario exige mantener exactamente el orden numerado del boleto en Administracion: posiciones1a14 y Pleno15. Usar el numero impreso, no orden de lineas reconocido, nombres, categoria ni horarios. Un cruce no reconocido mantiene su hueco sin desplazar los siguientes; no confirmar hasta revision15. Regresiones en coupon-import.spec.ts y e2e/photo-build.spec.ts verifican propuesta sin correcciones, guardado y recarga.
