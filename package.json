@@ -4,6 +4,7 @@
   "scripts": {
     "ng": "ng",
     "start": "node scripts/dev.mjs",
+    "start:test-admin": "node scripts/local-test-admin.mjs",
     "admin:setup": "node scripts/admin-setup.mjs",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
@@ -11,6 +12,7 @@
     "test:server": "node --test server/*.test.mjs",
     "test:watch": "ng test",
     "test:e2e": "playwright test",
+    "test:build": "npm run build && playwright test --config=playwright.build.config.ts",
     "test:production": "playwright test --config=playwright.production.config.ts",
     "test:e2e:ui": "playwright test --ui",
     "lint": "eslint src",

@@ -9,11 +9,16 @@ import { createApi } from '../server/api.mjs';
 import { localRequest } from '../server/local-request.mjs';
 
 // Local storage is real, separate from Netlify and excluded from version control.
-try {
-  process.loadEnvFile('.env');
-} catch (error) {
-  if (error.code !== 'ENOENT') throw error;
+const testAdmin = process.env.MQ_LOCAL_TEST_ADMIN === '1';
+if (!testAdmin) {
+  try {
+    process.loadEnvFile('.env');
+  } catch (error) {
+    if (error.code !== 'ENOENT') throw error;
+  }
 }
+if (testAdmin && !process.env.MQ_LOCAL_DATA_DIR)
+  throw new Error('El administrador de pruebas requiere almacenamiento aislado.');
 const directory = process.env.MQ_LOCAL_DATA_DIR ?? '.netlify/local';
 const seed = JSON.parse(readFileSync('server/seed.json', 'utf8'));
 const store = localStore(directory, 'season');
@@ -32,7 +37,14 @@ const sync = () =>
     force: true,
     selectedOnly: !(process.env.MQ_TEST_PROVIDERS === '1' && process.env.MQ_LOCAL_DATA_DIR),
   });
-const api = createApi({ store, sportsStore, seed, env: process.env, sync });
+const api = createApi({
+  store,
+  sportsStore,
+  seed,
+  env: process.env,
+  sync,
+  ...(testAdmin ? { adminUsername: 'codex-local' } : {}),
+});
 const attempts = new Map();
 const server = createServer(async (req, res) => {
   if (req.url === '/api/auth' && req.method === 'POST') {
@@ -59,16 +71,18 @@ const server = createServer(async (req, res) => {
 server.listen(8888, '127.0.0.1', () => console.log('API local en 127.0.0.1:8888'));
 const child = spawn(
   process.execPath,
-  [
-    'node_modules/@angular/cli/bin/ng.js',
-    'serve',
-    '--host',
-    '127.0.0.1',
-    '--port',
-    '4200',
-    '--proxy-config',
-    'proxy.conf.json',
-  ],
+  process.env.MQ_TEST_PRODUCTION_PREVIEW === '1'
+    ? ['scripts/preview-production.mjs']
+    : [
+        'node_modules/@angular/cli/bin/ng.js',
+        'serve',
+        '--host',
+        '127.0.0.1',
+        '--port',
+        '4200',
+        '--proxy-config',
+        'proxy.conf.json',
+      ],
   { stdio: 'inherit' },
 );
 function stop() {

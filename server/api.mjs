@@ -45,11 +45,28 @@ async function body(request) {
 }
 
 /** store: read() -> {data, etag} | null; write(data, etag) -> boolean (compare-and-swap). */
-export function createApi({ store, seed, env, sportsStore, sync, clock = Date.now }) {
+export function createApi({
+  store,
+  seed,
+  env,
+  sportsStore,
+  sync,
+  clock = Date.now,
+  adminUsername = adminId,
+}) {
   return async (request) => {
     try {
       const now = clock();
       const url = new URL(request.url);
+      // An alternate login is a local harness option, never a production environment setting.
+      if (
+        adminUsername !== adminId &&
+        (url.protocol !== 'http:' ||
+          !['localhost:4200', '127.0.0.1:4200', 'localhost:8888', '127.0.0.1:8888'].includes(
+            url.host,
+          ))
+      )
+        throw new ApiError(403, 'El administrador de pruebas solo admite localhost.');
       const isAdmin = authenticated(request, env, now);
       if (request.method !== 'GET') {
         if (
@@ -79,7 +96,7 @@ export function createApi({ store, seed, env, sportsStore, sync, clock = Date.no
         )
           throw new ApiError(400, 'Introduce usuario y contraseña.');
         const valid = await verifyPassword(credentials.password, env.ADMIN_PASSWORD_HASH);
-        if (!valid || credentials.username !== adminId)
+        if (!valid || credentials.username !== adminUsername)
           throw new ApiError(401, 'Usuario o contraseña incorrectos.');
         return json({ user: { id: adminId, name: 'Daniel Arroyo', role: 'admin' } }, 200, {
           'Set-Cookie': sessionCookie(env, now, url.protocol === 'https:'),

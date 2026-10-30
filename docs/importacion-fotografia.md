@@ -25,7 +25,23 @@ worker del navegador, no se envía a terceros ni se guarda en Blobs. El servidor
 solo recibe los datos revisados. Si hay errores de lectura, se pueden corregir
 en el formulario antes de confirmar. Las fotos de más de 24 megapíxeles se rechazan
 para limitar memoria; el lienzo de trabajo se reduce a un máximo de 2200 píxeles.
-Cambiar de sección termina el worker y libera la previsualización.
+Cambiar de sección termina el worker disponible y libera la previsualización.
+Si todavía se está inicializando, se termina cuando devuelve su referencia.
+
+La lectura distingue preparación de la imagen, carga del lector y reconocimiento.
+Un fallo elimina el mensaje de progreso anterior, conserva los cruces del borrador
+y permite volver a seleccionar la foto o continuar con texto o entrada manual.
+La carga del lector tiene un límite de treinta segundos. Tesseract no expone el
+worker antes de completar la inicialización: si esta nunca termina, se recupera
+el formulario, pero no se puede terminar expresamente ese worker mediante su API.
+
+El OCR propone datos y no garantiza reconocer todos los encuentros. Una prueba
+con una imagen sintética coloreada reconoció trece de quince; las filas 1 y 9
+quedaron vacías. La revisión y corrección de los quince cruces sigue siendo
+obligatoria antes de guardar. No se ha probado el archivo original de la foto
+adjunta del usuario; la imagen sintética reproduce su formato de forma aproximada.
+Consulta [el informe de pruebas](pruebas-ocr-local.md) y
+[el administrador exclusivo de localhost](administracion.md#administrador-de-pruebas-en-localhost).
 
 El filtro anterior de competiciones se conserva para el histórico importado de
 SELAE. Un boleto añadido por el administrador ya representa una selección explícita

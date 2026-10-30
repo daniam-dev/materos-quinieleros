@@ -15,6 +15,14 @@ Reinicia `npm start` y abre `http://127.0.0.1:4200/acceso` o `http://localhost:4
 
 Para cambiar o recuperar la contraseña, vuelve a ejecutar `npm run admin:setup` y reinicia. Se invalidan las sesiones existentes. No hay recuperación por correo ni registro abierto de administradores.
 
+## Administrador de pruebas en localhost
+
+Ejecuta `npm run start:test-admin` y abre `http://127.0.0.1:4200/acceso`. Usa el usuario `codex-local` y la contraseña de prueba pública `localhost-test-only-2026`. El formulario permite cambiar el usuario que aparece inicialmente. Este acceso usa scrypt y las mismas cookies firmadas y permisos del administrador; mantiene su identidad interna para probar las reglas existentes del grupo.
+
+El comando genera un hash y un secreto de sesión nuevos al arrancar, no lee ni modifica `.env` y guarda los datos en una carpeta temporal distinta de `.netlify/local`. Cada arranque comienza con los datos iniciales; al cerrar el proceso se elimina su carpeta temporal. Escucha exclusivamente en la interfaz de loopback. El usuario de prueba se rechaza fuera de las direcciones HTTP locales permitidas, y Netlify no habilita este usuario mediante variables de entorno.
+
+Para probar los archivos optimizados que se desplegarán, ejecuta primero `npm run build` y después `npm run start:test-admin -- --production-preview`. Usa los mismos puertos que `npm start`; cierra el servidor anterior antes de arrancarlo. Esta prueba local no acredita un despliegue en Netlify ni la integración real con OddsPapi.
+
 ## Netlify
 
 Se usan [Netlify Functions](https://docs.netlify.com/build/functions/get-started/) y [Netlify Blobs](https://docs.netlify.com/build/data-and-storage/netlify-blobs/). No se han creado servicios ni desplegado esta app durante esta implementación.

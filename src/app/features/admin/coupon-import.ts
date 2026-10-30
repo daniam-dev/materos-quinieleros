@@ -80,6 +80,7 @@ export class CouponImport {
     }
     this.reading.set(true);
     this.progress.set('Preparando la lectura de la foto…');
+    let phase: 'image' | 'engine' | 'recognition' = 'image';
     try {
       if (this.preview()) URL.revokeObjectURL(this.preview());
       this.preview.set(URL.createObjectURL(file));
@@ -96,21 +97,50 @@ export class CouponImport {
         context.fillStyle = '#ffffff';
         context.fillRect(0, 0, canvas.width, canvas.height);
         context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
-        const { createWorker, PSM } = await import('tesseract.js');
+        phase = 'engine';
+        this.progress.set('Cargando el lector de la foto…');
+        const tesseract = await import('tesseract.js');
+        // The production CommonJS bundle exposes Tesseract through its default export.
+        const { createWorker, PSM } = tesseract.default ?? tesseract;
         if (!this.alive) return;
-        this.worker = await createWorker('spa', 1, {
+        let rejectInitialization!: (reason: Error) => void;
+        const initializationFailed = new Promise<never>((_, reject) => {
+          rejectInitialization = reject;
+        });
+        let initializationFinished = false;
+        const timeout = setTimeout(
+          () => rejectInitialization(new Error('OCR initialization timed out')),
+          30_000,
+        );
+        const initializingWorker = createWorker('spa', 1, {
           workerPath: '/ocr/worker.min.js',
           corePath: '/ocr/core',
           langPath: '/ocr/lang',
+          // Language/model failures may only reach this callback in Tesseract.
+          errorHandler: () => rejectInitialization(new Error('OCR initialization failed')),
           logger: (message) => {
             if (this.alive && message.status === 'recognizing text')
               this.progress.set(`Leyendo la foto… ${Math.round(message.progress * 100)} %`);
           },
         });
+        void initializingWorker.then(
+          (worker) => {
+            if (initializationFinished || !this.alive) void worker.terminate();
+          },
+          () => undefined,
+        );
+        try {
+          this.worker = await Promise.race([initializingWorker, initializationFailed]);
+        } finally {
+          initializationFinished = true;
+          clearTimeout(timeout);
+        }
         if (!this.alive) {
           await this.stopWorker();
           return;
         }
+        phase = 'recognition';
+        this.progress.set('Leyendo la foto…');
         await this.worker.setParameters({ tessedit_pageseg_mode: PSM.SINGLE_BLOCK });
         const result = await this.worker.recognize(canvas);
         if (this.alive) {
@@ -121,12 +151,21 @@ export class CouponImport {
         bitmap.close();
       }
     } catch (error) {
-      if (this.alive)
+      if (this.alive) {
+        this.progress.set('');
+        const recovery =
+          'Vuelve a seleccionar la foto, pega los cruces como texto o introdúcelos manualmente.';
+        const failures = {
+          image: 'No se ha podido preparar la foto. Prueba con otra imagen JPG, PNG o WebP.',
+          engine: `No se ha podido cargar el lector de fotos. Comprueba tu conexión. ${recovery}`,
+          recognition: `No se ha podido leer la foto. ${recovery}`,
+        };
         this.error.set(
           error instanceof Error && error.message.startsWith('La foto')
             ? error.message
-            : 'No se ha podido leer la foto. Puedes pegar los cruces como texto o introducirlos manualmente.',
+            : failures[phase],
         );
+      }
     } finally {
       await this.stopWorker();
       if (this.alive) {
