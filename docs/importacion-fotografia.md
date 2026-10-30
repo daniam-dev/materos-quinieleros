@@ -16,6 +16,9 @@ El rechazo HTTP 403 de SELAE deja de bloquear la preparación de una jornada.
    siempre en **Europe/Madrid**, independientemente del dispositivo. No se deduce
    el cierre de una foto que no lo contiene. La temporada julio-junio procede de la fecha.
 5. Marca que has revisado los quince cruces, categorías y cierre, y guarda.
+   Si falta algún dato, el aviso aparece junto al botón y recibe el foco. Pulsa
+   **Revisar este dato** para ir al campo indicado. Los cruces del borrador se
+   conservan; corregir un dato requiere volver a marcar la revisión.
 6. En **Quinielas**, elige participante, completa los catorce pronósticos y el Pleno.
    Se mantienen hasta dos dobles: un doble acertado suma un acierto.
 

@@ -20,7 +20,7 @@ export const couponPairs = [
   ['Athletic Club', 'Real Sociedad', 'M'],
 ] as const;
 
-export async function couponImage(browser: Browser) {
+export async function couponImage(browser: Browser, { highlightFirst = true } = {}) {
   const fixture = await browser.newPage({ viewport: { width: 1122, height: 1134 } });
   await fixture.setContent(`<!doctype html><html lang="es"><meta charset="utf-8">
     <style>
@@ -29,11 +29,15 @@ export async function couponImage(browser: Browser) {
       p:nth-child(even) { background: #fff2f5; }
       b { display: inline-block; width: 80px; font-weight: normal; }
       span { display: inline-block; width: 790px; height: 48px; border: 1px solid #ddd; border-radius: 28px; padding-left: 12px; }
-      p:first-child span { background: #90c4db; color: white; font-weight: bold; border-color: transparent; }
+      ${highlightFirst ? 'p:first-child span { background: #90c4db; color: white; font-weight: bold; border-color: transparent; }' : ''}
       p:last-child { margin-top: 94px; height: 150px; background: #fce8ec; padding-top: 18px; }
       p:last-child span { border: none; }
     </style><body>${couponPairs.map(([home, away, category], i) => `<p><b>${i + 1}.</b><span>${home} (${category}) - ${away} (${category})</span></p>`).join('')}</body></html>`);
   const buffer = await fixture.screenshot({ fullPage: true });
   await fixture.close();
-  return { name: 'colored-coupon.png', mimeType: 'image/png', buffer };
+  return {
+    name: highlightFirst ? 'colored-coupon.png' : 'unselected-coupon.png',
+    mimeType: 'image/png',
+    buffer,
+  };
 }

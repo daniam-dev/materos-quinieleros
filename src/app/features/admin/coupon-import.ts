@@ -1,11 +1,15 @@
 import {
+  afterNextRender,
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
+  ElementRef,
   inject,
+  Injector,
   input,
   output,
   signal,
+  viewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CouponDraftRow, madridInputToIso, parseCouponText } from '../../domain/coupon-import';
@@ -24,6 +28,7 @@ export class CouponImport {
   readonly reading = signal(false);
   readonly progress = signal('');
   readonly error = signal('');
+  readonly saveIssue = signal<{ message: string; field: string } | null>(null);
   readonly preview = signal('');
   readonly rows = signal<CouponDraftRow[]>([]);
   number: number | null = null;
@@ -33,6 +38,9 @@ export class CouponImport {
   confirmed = false;
   private worker: Worker | undefined;
   private alive = true;
+  private readonly injector = inject(Injector);
+  private readonly element = inject<ElementRef<HTMLElement>>(ElementRef);
+  private readonly saveFeedback = viewChild<ElementRef<HTMLElement>>('saveFeedback');
 
   constructor() {
     inject(DestroyRef).onDestroy(() => {
@@ -50,10 +58,12 @@ export class CouponImport {
     this.rows.set(Array.from({ length: 15 }, () => ({ home: '', away: '', category: '' })));
     this.confirmed = false;
     this.error.set('');
+    this.saveIssue.set(null);
   }
   applyText(): void {
     this.confirmed = false;
     this.error.set('');
+    this.saveIssue.set(null);
     try {
       const result = parseCouponText(this.text);
       this.rows.set(result.rows);
@@ -69,6 +79,7 @@ export class CouponImport {
     const file = input.files?.[0];
     if (!file || this.reading()) return;
     this.error.set('');
+    this.saveIssue.set(null);
     this.confirmed = false;
     if (
       !['image/jpeg', 'image/png', 'image/webp'].includes(file.type) ||
@@ -174,30 +185,86 @@ export class CouponImport {
       }
     }
   }
+  reviewChanged(): void {
+    this.confirmed = false;
+    this.saveIssue.set(null);
+  }
+  focusIssue(event: Event, field: string): void {
+    event.preventDefault();
+    this.element.nativeElement.querySelector<HTMLElement>(`#${field}`)?.focus();
+  }
+  private rejectSave(message: string, field: string): void {
+    this.saveIssue.set({ message, field });
+    afterNextRender(() => this.saveFeedback()?.nativeElement.focus(), { injector: this.injector });
+  }
   save(): void {
-    this.error.set('');
-    try {
-      if (
-        !this.confirmed ||
-        this.rows().length !== 15 ||
-        this.rows().some((r) => !r.home.trim() || !r.away.trim() || !r.category)
-      )
-        throw new Error('Completa y revisa los 15 encuentros, incluido el Pleno.');
-      this.submitted.emit({
-        type: 'create-played-journey',
-        number: Number(this.number),
-        drawDate: this.drawDate,
-        closesAt: madridInputToIso(this.closesAt),
-        confirmed: true,
-        fixtures: this.rows().map((r) => ({
-          ...r,
-          category: r.category as 'men' | 'women',
-          kickoff: null,
-          competitionName: null,
-        })),
-      });
-    } catch (error) {
-      this.error.set((error as Error).message);
+    if (this.busy() || this.reading()) return;
+    this.saveIssue.set(null);
+    if (!Number.isInteger(this.number) || Number(this.number) < 1 || Number(this.number) > 999) {
+      this.rejectSave('Introduce un número de jornada entre 1 y 999.', 'coupon-number');
+      return;
     }
+    const date = new Date(`${this.drawDate}T12:00:00Z`);
+    if (
+      !/^20\d\d-\d\d-\d\d$/.test(this.drawDate) ||
+      !Number.isFinite(date.getTime()) ||
+      date.toISOString().slice(0, 10) !== this.drawDate
+    ) {
+      this.rejectSave('Introduce una fecha de jornada válida.', 'coupon-date');
+      return;
+    }
+    let closesAt: string;
+    try {
+      closesAt = madridInputToIso(this.closesAt);
+    } catch (error) {
+      this.rejectSave((error as Error).message, 'coupon-close');
+      return;
+    }
+    if (this.rows().length !== 15) {
+      this.rejectSave('Introduce los 14 encuentros y el Pleno al 15.', 'coupon-photo');
+      return;
+    }
+    for (const [index, row] of this.rows().entries()) {
+      const fixture = index === 14 ? 'Pleno al 15' : `encuentro ${index + 1}`;
+      for (const [field, label] of [
+        ['home', 'local'],
+        ['away', 'visitante'],
+      ] as const) {
+        if (!row[field].trim() || row[field].trim().length > 80) {
+          this.rejectSave(
+            `Revisa el ${label} del ${fixture}: introduce entre 1 y 80 caracteres.`,
+            `coupon-${field}-${index}`,
+          );
+          return;
+        }
+      }
+      if (!row.category) {
+        this.rejectSave(
+          `Selecciona masculino o femenino en el ${fixture}.`,
+          `coupon-category-${index}`,
+        );
+        return;
+      }
+    }
+    if (!this.confirmed) {
+      this.rejectSave(
+        'Confirma que has revisado los 15 cruces, su orden, las categorías y el cierre.',
+        'coupon-confirmed',
+      );
+      return;
+    }
+    this.submitted.emit({
+      type: 'create-played-journey',
+      number: Number(this.number),
+      drawDate: this.drawDate,
+      closesAt,
+      confirmed: true,
+      fixtures: this.rows().map((r) => ({
+        ...r,
+        category: r.category as 'men' | 'women',
+        kickoff: null,
+        competitionName: null,
+      })),
+    });
   }
 }

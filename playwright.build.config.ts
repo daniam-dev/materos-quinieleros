@@ -3,7 +3,7 @@ import { defineConfig } from '@playwright/test';
 // Exercise the optimized artifact, including CommonJS lazy-import interop.
 export default defineConfig({
   testDir: './e2e',
-  testMatch: 'photo-build.spec.ts',
+  testMatch: ['photo-build.spec.ts', 'photo-save.spec.ts'],
   fullyParallel: false,
   workers: 1,
   retries: 0,

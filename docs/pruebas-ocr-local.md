@@ -96,6 +96,34 @@ OCR y habilita un entorno local de pruebas.
 
 ## Publicación y comprobaciones remotas
 
+### Incidencia posterior: guardar parecía no hacer nada
+
+Reproducido con el administrador local y el build optimizado anterior: quince
+cruces completos, revisión marcada y metadatos vacíos. Al pulsar Guardar, no se
+envía petición y no aparece error de JavaScript. El aviso del cierre sí existe,
+pero queda fuera del viewport, a más de 2.000 píxeles sobre el botón. Con número,
+fecha y cierre completos, el mismo boleto se guarda correctamente.
+
+La validación local ahora señala número, fecha, cierre o el primer equipo/categoría
+pendiente. El aviso aparece junto al botón, recibe el foco y contiene un enlace
+al campo. No se descartan los cruces ni se cambia su orden. Los rechazos del
+servidor mantienen el resumen enfocado de Administración.
+
+La nueva variante de imagen de prueba reproduce los quince cruces de la segunda
+captura, con la primera fila sin selección azul. Sigue siendo una reconstrucción:
+el adjunto de la conversación no está disponible como archivo para el ejecutor.
+
+Validación de esta corrección: `npm run check` aprobado (42 Angular, 78 servidor,
+formato, texto, lint, tipos y build), 9 E2E de desarrollo en 40,5 s y 8 E2E contra
+el build optimizado en 26,6 s. Las dos regresiones nuevas cubren los avisos locales
+sin peticiones, enlace al campo, guardado y recarga ordenados, hora ambigua de Madrid
+y rechazo 400 por cruce duplicado con recuperación. Cuatro auditorías Axe nuevas:
+0 infracciones y sin desbordamiento a 1440/390 px. Las capturas posteriores seleccionan
+explícitamente la nueva jornada 222 tras recargar; no confunden el boleto anterior
+de la batería con la jornada que acaba de guardarse.
+
+### Corrección anterior del arranque del OCR
+
 Publicado en `origin/main` como
 `c794c97b5d91264fd1f46e72ece4284375d44018`
 (`fix(ocr): handle optimized exports and add isolated local admin tests`).

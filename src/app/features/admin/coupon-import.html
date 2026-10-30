@@ -40,7 +40,7 @@
     <p role="alert" class="form-error">{{ error() }}</p>
   }
   @if (rows().length) {
-    <form (ngSubmit)="save()">
+    <form (ngSubmit)="save()" novalidate>
       <fieldset [disabled]="busy() || reading()" class="admin-import-fields">
         <legend>Revisa el boleto antes de guardarlo</legend>
         <div class="admin-fields">
@@ -53,7 +53,7 @@
               max="999"
               required
               [(ngModel)]="number"
-              (ngModelChange)="confirmed = false"
+              (ngModelChange)="reviewChanged()"
           /></label>
           <label class="admin-form" for="coupon-date"
             >Fecha de la jornada<input
@@ -62,7 +62,7 @@
               type="date"
               required
               [(ngModel)]="drawDate"
-              (ngModelChange)="confirmed = false"
+              (ngModelChange)="reviewChanged()"
           /></label>
           <label class="admin-form" for="coupon-close"
             >Cierre de apuestas · hora de Madrid<input
@@ -71,7 +71,7 @@
               type="datetime-local"
               required
               [(ngModel)]="closesAt"
-              (ngModelChange)="confirmed = false"
+              (ngModelChange)="reviewChanged()"
           /></label>
         </div>
         <p class="admin-help">
@@ -91,7 +91,7 @@
                     required
                     maxlength="80"
                     [(ngModel)]="row.home"
-                    (ngModelChange)="confirmed = false"
+                    (ngModelChange)="reviewChanged()"
                 /></label>
                 <label class="admin-form" [for]="'coupon-away-' + i"
                   >Visitante<input
@@ -100,7 +100,7 @@
                     required
                     maxlength="80"
                     [(ngModel)]="row.away"
-                    (ngModelChange)="confirmed = false"
+                    (ngModelChange)="reviewChanged()"
                 /></label>
                 <label class="admin-form" [for]="'coupon-category-' + i"
                   >Categoría<select
@@ -108,7 +108,7 @@
                     [name]="'category-' + i"
                     required
                     [(ngModel)]="row.category"
-                    (ngModelChange)="confirmed = false"
+                    (ngModelChange)="reviewChanged()"
                   >
                     <option value="">Selecciona M/F</option>
                     <option value="men">Masculino (M)</option>
@@ -120,10 +120,27 @@
           }
         </div>
         <label class="admin-check"
-          ><input type="checkbox" name="confirmed" [(ngModel)]="confirmed" /><span
-            >He revisado los 15 cruces, su orden, las categorías y el cierre.</span
-          ></label
+          ><input
+            id="coupon-confirmed"
+            type="checkbox"
+            name="confirmed"
+            [(ngModel)]="confirmed"
+          /><span>He revisado los 15 cruces, su orden, las categorías y el cierre.</span></label
         >
+        @if (saveIssue(); as issue) {
+          <div
+            #saveFeedback
+            id="coupon-save-feedback"
+            class="form-error"
+            role="alert"
+            tabindex="-1"
+          >
+            <p>{{ issue.message }}</p>
+            <a [href]="'#' + issue.field" (click)="focusIssue($event, issue.field)"
+              >Revisar este dato</a
+            >
+          </div>
+        }
         <button class="mq-button mq-button--primary" type="submit" [disabled]="!confirmed">
           {{ busy() ? 'Guardando…' : 'Guardar jornada y cargar quinielas' }}
         </button>
