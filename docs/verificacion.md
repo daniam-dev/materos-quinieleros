@@ -1,5 +1,9 @@
 # Verificación
 
+La batería y los hallazgos del despliegue real del 30/10/2026 están en
+[Pruebas de producción](pruebas-produccion.md). Los apartados siguientes conservan
+la evidencia local de implementación.
+
 ## Importación y resultados automáticos — 27/10/2026
 
 Implementación local terminada, sin publicación ni despliegue. `npm run check` aprobado: formato, UTF-8/LF, ESLint, ambos proyectos TypeScript, 33 pruebas Angular, 40 pruebas de servidor y build de producción de 497,31 kB, dentro del presupuesto. Bundling local de las tres Functions con esbuild aprobado. Dependencias sin cambios; auditoría no repetida.

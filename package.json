@@ -11,6 +11,7 @@
     "test:server": "node --test server/*.test.mjs",
     "test:watch": "ng test",
     "test:e2e": "playwright test",
+    "test:production": "playwright test --config=playwright.production.config.ts",
     "test:e2e:ui": "playwright test --ui",
     "lint": "eslint src",
     "typecheck": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.spec.json",

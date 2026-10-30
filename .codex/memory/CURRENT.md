@@ -1,5 +1,13 @@
 # Estado actual
 
+## 2026-10-30 - Bateria y auditoria de produccion sin OddsPapi
+
+El usuario confirma despliegue y login admin y encarga pruebas con agentes e informe. Tres agentes revisan UI publica, API/privacidad y operacion; revision principal cubre API/panel privados con sesion de diez minutos firmada dentro del proceso usando configuracion local, sin mostrar secretos ni probar contrasena. Creados cuatro archivos e2e-production, playwright.production.config.ts, npm run test:production y docs/pruebas-produccion.md, enlazado desde docs/verificacion.md. Sin cambios de datos productivos, sincronizacion manual, consumo OddsPapi, commit o push.
+
+Ultimas ejecuciones por escenarios unicos: 28 casos, 19 aprobados, 5 fallidos y 4 omitidos; no fue una unica ejecucion conjunta. Cinco fallos reproducen label-content-name-mismatch de .brand (axe serious, WCAG 2.5.3) en UI publica a tres tamanos y admin a dos. Funcionan navegacion, recarga, foco/teclado, paneles, acceso privado, rechazo de cookies fabricadas, origen y revisiones invalidos; sin exposicion de archivos privados observada. Otros hallazgos: insignia Netlify sobre fila movil y texto vacio con flujo antiguo. Detalles/evidencias y limites en el informe. La primera pasada publica omitio wcag21a; ampliada, reproduce defecto. Incidencia transitoria al consultar sesion movil no atribuida; repeticion completa solo falla por axe. Sondeo auxiliar fallo por codificacion de selector PowerShell, no producto. Formato, texto (144 archivos) y diff check aprobados. Pruebas locales previas no repetidas.
+
+A 2026-10-30T11:00:16Z API publica 200, nueve participantes, cero jornadas y sin synchronization; API privada devuelve revision initial y tampoco estado deportivo. No acreditar cron, persistencia de escrituras reales, importacion SELAE, privacidad poblada ni signos futuros. Cuatro omisiones reflejan falta de jornadas/estado. OddsPapi ausente segun usuario; ausencia de marcadores es esperada y SELAE debe operar independientemente. Siguiente paso operativo: revisar registro/ejecucion synchronize en Netlify y repetir pruebas con jornadas antes de activar OddsPapi.
+
 ## 2026-10-30 - Automatizacion y competiciones integradas en main
 
 El usuario autoriza integrar la rama en main para continuar la puesta en servicio. Fetch confirma main sin divergencia; integracion fast-forward de feat/automatic-journeys-results y push a origin/main completados en 998438afc842eb82acf726f409dc9ce1251ce87f, confirmado con ls-remote. Incluye el codigo publicado previamente en 15e8b99 y el registro de preparacion 998438a. El primer cambio de rama fue rechazado por ROADMAP local pendiente; se conservo en commit antes de integrar, sin perder cambios.
