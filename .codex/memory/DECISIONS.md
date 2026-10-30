@@ -49,3 +49,7 @@ El usuario elige importacion asistida y concreta que quiere fotografiar el bolet
 ## Resultados deportivos definitivos elegidos - 2026-10-30
 
 El usuario confirma que el signo ganador se obtenga automaticamente de OddsPapi, con correccion administrativa disponible. Sustituye para las jornadas nuevas la regla anterior de OddsPapi solo provisional y SELAE como unica confirmacion. Local gana1, empateX, visitante2; sencillo o doble acertado suma uno, maximo14, Pleno separado y victorias compartidas por empate en aciertos. Se conserva el historico sin reinterpretarlo. Implementacion exige finalizacion explicita del proveedor e identidad coincidente, no el reloj ni un marcador aislado. El cierre es la hora de Madrid que el administrador confirma al revisar el boleto, sin deducir cierre comercial desde OddsPapi.
+
+## Administrador de pruebas local - 2026-10-30
+
+Peticion explicita: crear usuario SOLO localhost con el mismo flujo hasheado para probar sin credenciales personales. Implementado launcher codex-local: hash scrypt/secreto nuevos, mismas cookies y propietario interno, datos temporales separados, sin .env. No nuevo participante ni acceso de prueba en Netlify; Daniel conserva acceso habitual. Guia docs/administracion.md e informe docs/pruebas-ocr-local.md.

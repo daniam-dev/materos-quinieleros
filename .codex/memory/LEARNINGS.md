@@ -33,3 +33,7 @@ Un HTTP 403 no implica sesión caducada: también puede ser una comprobación de
 ## Escritura de memoria y Unicode en PowerShell — 2026-10-26
 
 Detectada pérdida de tildes y signos al pasar programas Node con texto Unicode por el pipeline de PowerShell: las notas publicables quedaron con interrogantes aunque seguían siendo bytes UTF-8 válidos, por lo que check-text no lo detectó. Se restauran los fragmentos históricos desde Git y los añadidos desde el contenido de sesión, conservando hechos y motivos; las escrituras pasan por Cortex. Para enviar el programa por stdin, usar datos JSON con escapes Unicode ASCII o un canal UTF-8 explícito. El programa debe construir el plan leyendo los archivos UTF-8 y pasarlo por stdin al runtime, sin interpolar texto Unicode sin proteger en el shell.
+
+## OCR optimizado y regresiones - 2026-10-30
+
+Tesseract7 importado con named exports funciona en ng serve, pero el chunk CommonJS optimizado solo exporta default. Comprobar el artefacto construido: resolver default ?? namespace y ejecutar npm run test:build. Las pruebas anteriores sobre ng serve no detectaban el fallo antesdecreateWorker. Recursos OCR200 por si solos no acreditan que la app arranque el lector. Conservar propuestas incompletas como borradores, exigir revision15 y probar errores de worker y modelo; la captura sintetica coloreada reconoce13/15, no prometer OCRperfecto. Informe principal docs/pruebas-ocr-local.md.

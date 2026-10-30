@@ -1,5 +1,17 @@
 # Estado actual
 
+## 2026-10-30 - OCR de produccion corregido y admin de pruebas solo local
+
+Usuario autoriza pruebas con agentes, cuenta local hasheada, correcciones, Impeccable y publicacion Conventional Commits. Publicado c794c97b5d91264fd1f46e72ece4284375d44018 en origin/main. Informe principal docs/pruebas-ocr-local.md: fallo real de exportacion CommonJS default en build optimizado frente a named exports de Vite. Recuperacion por fase, progreso limpio y limite de inicializacion 30s. Launcher codex-local usa scrypt/cookies reales con secreto nuevo y almacenamiento temporal, sin leer .env; produccion conserva Daniel y no admite la cuenta fixture.
+
+Verificacion final: npm run check aprobado (40 Angular,78 servidor,formato,texto,lint,tipos,build499.50kB);9E2E desarrollo33.2s y6E2E build14.5s. OCR real en PNG sintetico coloreado13/15,26 nombres exactos; filas1/9 completadas,15 revisadas antes deguardar. No archivo original. Fallos worker/modelo503, reintento, borrador, invalidos, salida y privacidad probados. Axe4estados0, sin overflow1440/390, Impeccable independiente ship. Detector[]degradado sinparsers. TresFunctions empaquetadas; fixtureausente en artefactosproduccion. Inicial alarma overflow527px fue medida transitoria alresize, polling confirma390; sinfixCSS. Error de quoting de diagnosticoPowerShell corregido con stdinASCII, no fallo producto.
+
+Netlify18:28:49UTC sirve nuevo main,chunkadmin yCSS iguales porSHA256 albuild; worker/WASM/modelo200. Loginfixture real remoto401 sincookie; season200. Sin loginDaniel ni escriturasproduccion. Sin estadosCI GitHub; no Firefox/Safari. No llamadasOddsPapi ni cambio del TODO eficiente. Limite: Tesseract no expone worker antesdeinit; UI recupera30s y worker tardio se termina, pero init nuncaresuelta no permite terminacion explicita. Detalle y guias en informe.
+
+## 2026-10-30 - TO-DO OddsPapi documentado, sin implementar
+
+Por encargo explicito, solo investigacion de documentacion v4 y contraste con main b025269. Plan en [OddsPapi eficiente](topics/oddspapi-efficient-matching.md), enlazado desde ROADMAP. Nuevo bloqueo de validacion P0: documentacion fixtures/fixture contradice statusId2 (final frente a en juego); scores tambien difiere en periodos. Resolver antes de activar la clave. Competiciones visible se propone retirar, conservando metadatos e historico. Sin cambios de app, pruebas funcionales, consumo de API o publicacion en este turno.
+
 ## 2026-10-30 - Foto revisada y signos deportivos implementados y desplegados
 
 El usuario elige OddsPapi como origen definitivo de signos deportivos, con correccion administrativa. Publicado aa06103fe44b4a7794c34c5bb972eb82df21bf3c en origin/main (44 archivos). Main/CSS desplegados contrastados con build local a13:09Z; assets OCR worker/core/modelo espanol200 con tamanos y gzip correctos. Sondeo privado real13:10Z confirma entradafoto y pestanaResultados, sin erroresJS, cero jornadas y revisioninitial: no se han creado datos reales. Un primer sondeo auxiliar fallo por URLrelativa sin base; corregido con URLabsoluta. Configuracion OddsPapi sigue pendiente; no hubo llamadas autenticadas ni consumo.

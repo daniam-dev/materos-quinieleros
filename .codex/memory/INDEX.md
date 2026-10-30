@@ -6,5 +6,6 @@
 - [LEARNINGS.md](LEARNINGS.md)
 - [PREFERENCES.md](PREFERENCES.md)
 - [ROADMAP.md](ROADMAP.md)
+- [topics/oddspapi-efficient-matching.md](topics/oddspapi-efficient-matching.md)
 - Histórico inactivo: `topics/archive/` (consulta selectiva).
 <!-- cortex:index:end -->

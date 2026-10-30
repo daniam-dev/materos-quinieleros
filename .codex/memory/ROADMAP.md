@@ -1,5 +1,9 @@
 # Próximos pasos
 
+## TO-DO solicitado: OddsPapi eficiente y simplificar Competiciones - 2026-10-30
+
+Estado: pendiente, no implementar hasta nuevo encargo. Plan completo, fuentes y criterios en [OddsPapi eficiente](topics/oddspapi-efficient-matching.md). Prioridad P0: resolver contradiccion documental de statusId entre fixtures/fixture y formato de scores antes de activar confirmaciones reales. Propuesta: retirar filtro visible, mantener metadatos tecnicos e historico; descubrimiento/estados en lote, identidades persistentes y finales priorizados bajo cuota. Ejemplo ideal 20 llamadas por boleto, no garantia. En este turno solo investigacion y memoria: sin codigo, llamadas autenticadas, gasto, commit, push o despliegue.
+
 ## Pendiente operativo de Cortex
 
 Revisar confianza del proyecto y hooks con /hooks, reiniciar sesión y comprobar posteriormente eventos reales. Instalación local no equivale a activación verificada.

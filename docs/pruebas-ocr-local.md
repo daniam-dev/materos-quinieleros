@@ -84,6 +84,19 @@ finalización automática de encuentros reales. El plan de correspondencias y us
 eficiente de OddsPapi permanece como TODO sin implementar; este cambio corrige el
 OCR y habilita un entorno local de pruebas.
 
-La validación local del artefacto optimizado no sustituye la verificación de un
-nuevo despliegue de Netlify. La publicación y sus comprobaciones remotas se deben
-registrar por separado cuando se ejecuten.
+## Publicación y comprobaciones remotas
+
+Publicado en `origin/main` como
+`c794c97b5d91264fd1f46e72ece4284375d44018`
+(`fix(ocr): handle optimized exports and add isolated local admin tests`).
+El 30/10/2026 a las 18:28:49 UTC, la página pública ya referencia el nuevo main;
+su JavaScript, el chunk administrativo y la hoja de estilos coinciden por SHA-256
+con el build local probado. Worker, núcleo WASM y modelo español responden 200
+con el tipo de contenido esperado. La cuenta `codex-local` se rechaza en producción
+con 401 y sin cookie de sesión; la lectura pública responde 200.
+
+No se ha iniciado sesión como Daniel ni se han guardado jornadas en producción
+en estas comprobaciones. La importación completa se valida en el build optimizado
+local con almacenamiento temporal, y no se afirma haber repetido ese recorrido
+autenticado en Netlify. GitHub no devuelve estados de CI para este commit;
+los resultados de pruebas de este informe proceden de las ejecuciones locales.
