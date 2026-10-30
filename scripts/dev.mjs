@@ -30,6 +30,7 @@ const sync = () =>
     selae,
     odds: oddspapiProvider(undefined),
     force: true,
+    selectedOnly: !(process.env.MQ_TEST_PROVIDERS === '1' && process.env.MQ_LOCAL_DATA_DIR),
   });
 const api = createApi({ store, sportsStore, seed, env: process.env, sync });
 const attempts = new Map();

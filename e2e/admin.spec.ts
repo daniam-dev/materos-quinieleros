@@ -61,7 +61,7 @@ test('acceso real, gestión del grupo y carga persistente de quinielas con priva
   await page.getByLabel('Contraseña', { exact: true }).fill('e2e-only-password');
   await page.getByRole('button', { name: 'Acceder', exact: true }).click();
   await expect(page).toHaveURL(/\/administracion$/);
-  await expect(page.getByRole('heading', { name: 'Esperando jornadas de SELAE' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Añade la primera quiniela' })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Administración', exact: true })).toBeVisible();
   await inspect(page, 'empty');
   await page.reload();
@@ -87,8 +87,8 @@ test('acceso real, gestión del grupo y carga persistente de quinielas con priva
 
   await page.getByRole('button', { name: 'Jornadas', exact: true }).click();
   await expect(page.getByRole('status')).toHaveText('');
-  await expect(page.getByRole('heading', { name: 'Jornadas importadas' })).toBeVisible();
-  await page.getByRole('button', { name: 'Reintentar sincronización' }).click();
+  await expect(page.getByRole('heading', { name: 'Jornadas del grupo' })).toBeVisible();
+  await page.getByRole('button', { name: 'Actualizar horarios y marcadores' }).click();
   await expect(page.getByRole('status')).toContainText('Sincronización solicitada');
   await inspect(page, 'imported');
   await page.getByRole('button', { name: 'Competiciones', exact: true }).click();
@@ -119,6 +119,7 @@ test('acceso real, gestión del grupo y carga persistente de quinielas con priva
   let selectedPublic = await (await page.request.get('/api/season')).json();
   expect(selectedPublic.journeys.some((j: { id: string }) => j.id === 'selae-10001')).toBe(false);
   await page.reload();
+  await expect(page.locator('.admin-workspace')).toBeVisible();
   await page.getByRole('button', { name: 'Competiciones', exact: true }).click();
   await expect(
     page.getByRole('switch', { name: 'Champions League', exact: true }),

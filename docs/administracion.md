@@ -1,5 +1,8 @@
 # Acceso de Daniel Arroyo
 
+Para añadir boletos revisados desde foto y corregir signos deportivos consulta
+[el flujo actual](importacion-fotografia.md). La foto se reconoce localmente; no necesita otro secreto.
+
 Para entender qué ocurre desde la importación de una jornada hasta la clasificación, consulta el [flujo completo de la aplicación](flujo.md). Esta guía detalla la configuración del acceso y sus permisos.
 
 Para elegir qué boletos juega el grupo, usa **Administración → Competiciones**. La [guía de competiciones](competiciones.md) explica los interruptores, los boletos mixtos y la identificación manual cuando SELAE no aporta el torneo.
@@ -18,7 +21,7 @@ Se usan [Netlify Functions](https://docs.netlify.com/build/functions/get-started
 
 Antes de desplegar, configura **solo en el ámbito de Functions**, en los ajustes privados de Netlify, las dos variables generadas por `admin:setup`: `ADMIN_PASSWORD_HASH` y `ADMIN_SESSION_SECRET`. No incluyas los valores en código, variables del frontend ni mensajes. Rotar cualquiera de ellas invalida las sesiones al actualizar el entorno de Functions.
 
-El build publica `dist/materos-quinieleros/browser`. `auth.mjs` atiende `/api/auth`; `season.mjs`, `/api/season` y `/api/admin`. `synchronize.mjs` ejecuta la importación y seguimiento cada 15 minutos en producción. Configura `ODDSPAPI_KEY` solo en Functions de producción para habilitar marcadores. [Configuración inicial, presupuesto y límites](sincronizacion.md). Las funciones preceden la reescritura SPA. El seed no se publica como archivo estático.
+El build publica `dist/materos-quinieleros/browser`. `auth.mjs` atiende `/api/auth`; `season.mjs`, `/api/season` y `/api/admin`. `synchronize.mjs` sigue cada 15 minutos los boletos guardados por el administrador; no importa SELAE en producción. Configura `ODDSPAPI_KEY` solo en Functions de producción para habilitar horarios, marcadores y signos deportivos finales. [Configuración inicial, presupuesto y límites](importacion-fotografia.md). Las funciones preceden la reescritura SPA. El seed no se publica como archivo estático.
 
 Producción usa el store `quinielas-production`, que persiste entre despliegues. Cada despliegue de preview o rama tiene un store distinto y no escribe el grupo de producción; un nuevo deploy de preview arranca con el seed. Se usa `context.deploy` del runtime, sin confiar en variables exclusivas del build. Sin contexto suficiente falla cerrado. Cambiar el seed no migra un store existente; no hay migración automática entre local y producción.
 

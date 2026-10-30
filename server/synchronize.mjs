@@ -2,12 +2,15 @@ import { randomUUID } from 'node:crypto';
 import { allFixtures, emptySports, settled } from './sports-data.mjs';
 import { drawIdentity, parseDraw, selaeDiagnostic } from './providers/selae.mjs';
 import { participation, playable } from './competitions.mjs';
+import { withResultOverrides } from './played-journeys.mjs';
 import {
   accountQuota,
   reconcileQuota,
   fixtureRows,
   mapFixture,
   parseScores,
+  mapPlayedFixture,
+  applySportingFinal,
 } from './providers/oddspapi.mjs';
 
 const iso = (now) => new Date(now).toISOString();
@@ -98,12 +101,18 @@ export function scoreTasks(data, now) {
         const elapsed = now - Date.parse(f.kickoff);
         if (elapsed < hour) return [];
         const stage = elapsed >= 2 * hour ? 'after' : 'during';
-        if (data.jobs[`score:${f.id}:${stage}`]) return [];
+        let attempt;
+        if (j.resultPolicy === 'sporting' && stage === 'after') {
+          const delays = [2, 3, 6, 24];
+          attempt = delays.findLastIndex((hours) => elapsed >= hours * hour);
+          if (data.jobs[`score:${f.id}:after-${attempt}`]) return [];
+        } else if (data.jobs[`score:${f.id}:${stage}`]) return [];
         return [
           {
             journey: j,
             fixture: f,
             stage,
+            ...(attempt !== undefined ? { attempt } : {}),
             due: Date.parse(f.kickoff) + (stage === 'after' ? 2 : 1) * hour,
           },
         ];
@@ -127,6 +136,7 @@ export async function synchronize({
   clock = Date.now,
   sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
   force = false,
+  selectedOnly = false,
 }) {
   const started = clock();
   const token = randomUUID();
@@ -153,105 +163,127 @@ export async function synchronize({
     privateData = (await privateStore.read())?.data ?? seed;
     delete data.sync.system;
     const now = clock();
-    const candidates = new Map(Object.entries(data.pendingDraws ?? {}));
-    let discoveryFailed = false;
-    const diagnostics = [];
-    const diagnose = (error) => {
-      const detail = selaeDiagnostic(error);
-      if (
-        diagnostics.length < 4 &&
-        !diagnostics.some((d) => JSON.stringify(d) === JSON.stringify(detail))
-      )
-        diagnostics.push(detail);
-    };
-    if (force || !data.discoveredAt || now - Date.parse(data.discoveredAt) >= 6 * hour) {
-      try {
-        for (const row of await selae.discover()) {
-          const identity = drawIdentity(row);
-          candidates.set(identity.drawId, identity);
-        }
-        data.discoveredAt = iso(clock());
-      } catch (error) {
-        discoveryFailed = true;
-        diagnose(error);
+    if (selectedOnly) {
+      // Only coupons explicitly saved by the administrator enter sporting discovery.
+      for (const journey of privateData.journeys.filter((j) => j.resultPolicy === 'sporting')) {
+        if (data.journeys.some((j) => j.id === journey.id)) continue;
+        const copy = structuredClone(journey);
+        delete copy.predictions;
+        delete copy.resultOverrides;
+        delete copy.pleno.predictions;
+        data.journeys.push(copy);
       }
-    }
-    // Rotating seven-day recovery discovers a currently playing coupon on first setup,
-    // and coupons missed during a short outage, including midweek draws.
-    if (selae.recent && withinTime()) {
-      data.recentChecks ??= {};
-      const days = Array.from({ length: 8 }, (_, i) =>
-        new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Madrid' }).format(now - i * 24 * hour),
-      );
-      const day = days.find(
-        (day) => !data.recentChecks[day] || now - data.recentChecks[day] >= 24 * hour,
-      );
-      if (day) {
-        data.recentChecks[day] = now;
+      delete data.sync.selae;
+      data.sync.coupons = {
+        state: 'manual',
+        message: 'Solo se actualizan los boletos que has guardado en el grupo.',
+      };
+      await save();
+    } else {
+      const candidates = new Map(Object.entries(data.pendingDraws ?? {}));
+      let discoveryFailed = false;
+      const diagnostics = [];
+      const diagnose = (error) => {
+        const detail = selaeDiagnostic(error);
+        if (
+          diagnostics.length < 4 &&
+          !diagnostics.some((d) => JSON.stringify(d) === JSON.stringify(detail))
+        )
+          diagnostics.push(detail);
+      };
+      if (force || !data.discoveredAt || now - Date.parse(data.discoveredAt) >= 6 * hour) {
         try {
-          for (const row of await selae.recent(day)) {
+          for (const row of await selae.discover()) {
             const identity = drawIdentity(row);
             candidates.set(identity.drawId, identity);
           }
+          data.discoveredAt = iso(clock());
         } catch (error) {
           discoveryFailed = true;
           diagnose(error);
         }
       }
-    }
-    data.pendingDraws = Object.fromEntries(candidates);
-    const existing = data.journeys
-      .filter(
-        (j) =>
-          force || !j.checkedAt || now - Date.parse(j.checkedAt) >= (settled(j) ? 24 * hour : 0),
-      )
-      .sort((a, b) => (Date.parse(a.checkedAt ?? '') || 0) - (Date.parse(b.checkedAt ?? '') || 0));
-    for (const j of existing)
-      if (!candidates.has(j.officialId)) candidates.set(j.officialId, j.source);
-    let errors = discoveryFailed ? 1 : 0;
-    let processed = 0;
-    for (const identity of candidates.values()) {
-      if (!withinTime() || processed++ >= 4) break;
-      const index = data.journeys.findIndex((j) => j.officialId === identity.drawId);
-      try {
-        const incoming = parseDraw(await selae.draw(identity), identity, iso(clock()));
-        // Existing app season IDs are preserved when they represent the same published season.
-        const seasonLabel = privateData.season.label.replace('/', '-');
-        if (seasonLabel === incoming.seasonId || privateData.season.id === incoming.seasonId)
-          incoming.seasonId = privateData.season.id;
-        const next = updateJourney(
-          index < 0 ? null : data.journeys[index],
-          incoming,
-          privateData.participants,
-          clock(),
+      // Rotating seven-day recovery discovers a currently playing coupon on first setup,
+      // and coupons missed during a short outage, including midweek draws.
+      if (selae.recent && withinTime()) {
+        data.recentChecks ??= {};
+        const days = Array.from({ length: 8 }, (_, i) =>
+          new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Madrid' }).format(
+            now - i * 24 * hour,
+          ),
         );
-        next.checkedAt = iso(clock());
-        if (index < 0) data.journeys.push(next);
-        else data.journeys[index] = next;
-        delete data.pendingDraws[identity.drawId];
-      } catch (error) {
-        errors++;
-        diagnose(error);
-        if (index >= 0) {
-          data.journeys[index].syncStatus = 'error';
-          data.journeys[index].checkedAt = iso(clock());
-          for (const f of allFixtures(data.journeys[index])) f.stale = true;
+        const day = days.find(
+          (day) => !data.recentChecks[day] || now - data.recentChecks[day] >= 24 * hour,
+        );
+        if (day) {
+          data.recentChecks[day] = now;
+          try {
+            for (const row of await selae.recent(day)) {
+              const identity = drawIdentity(row);
+              candidates.set(identity.drawId, identity);
+            }
+          } catch (error) {
+            discoveryFailed = true;
+            diagnose(error);
+          }
         }
       }
-    }
-    data.sync.selae = {
-      state: errors || data.journeys.some((j) => j.syncStatus === 'error') ? 'error' : 'ok',
-      checkedAt: iso(clock()),
-      ...(diagnostics.length ? { diagnostics } : {}),
-      ...(errors || data.journeys.some((j) => j.syncStatus === 'error')
-        ? {
-            message: diagnostics.some((d) => d.reason === 'http-403')
-              ? 'SELAE ha rechazado el acceso desde el servidor (HTTP 403). No se han podido importar o actualizar las jornadas; se conserva la copia anterior.'
-              : safeFailure('SELAE'),
+      data.pendingDraws = Object.fromEntries(candidates);
+      const existing = data.journeys
+        .filter(
+          (j) =>
+            force || !j.checkedAt || now - Date.parse(j.checkedAt) >= (settled(j) ? 24 * hour : 0),
+        )
+        .sort(
+          (a, b) => (Date.parse(a.checkedAt ?? '') || 0) - (Date.parse(b.checkedAt ?? '') || 0),
+        );
+      for (const j of existing)
+        if (!candidates.has(j.officialId)) candidates.set(j.officialId, j.source);
+      let errors = discoveryFailed ? 1 : 0;
+      let processed = 0;
+      for (const identity of candidates.values()) {
+        if (!withinTime() || processed++ >= 4) break;
+        const index = data.journeys.findIndex((j) => j.officialId === identity.drawId);
+        try {
+          const incoming = parseDraw(await selae.draw(identity), identity, iso(clock()));
+          // Existing app season IDs are preserved when they represent the same published season.
+          const seasonLabel = privateData.season.label.replace('/', '-');
+          if (seasonLabel === incoming.seasonId || privateData.season.id === incoming.seasonId)
+            incoming.seasonId = privateData.season.id;
+          const next = updateJourney(
+            index < 0 ? null : data.journeys[index],
+            incoming,
+            privateData.participants,
+            clock(),
+          );
+          next.checkedAt = iso(clock());
+          if (index < 0) data.journeys.push(next);
+          else data.journeys[index] = next;
+          delete data.pendingDraws[identity.drawId];
+        } catch (error) {
+          errors++;
+          diagnose(error);
+          if (index >= 0) {
+            data.journeys[index].syncStatus = 'error';
+            data.journeys[index].checkedAt = iso(clock());
+            for (const f of allFixtures(data.journeys[index])) f.stale = true;
           }
-        : { message: 'Jornadas y signos oficiales actualizados.' }),
-    };
-    await save();
+        }
+      }
+      data.sync.selae = {
+        state: errors || data.journeys.some((j) => j.syncStatus === 'error') ? 'error' : 'ok',
+        checkedAt: iso(clock()),
+        ...(diagnostics.length ? { diagnostics } : {}),
+        ...(errors || data.journeys.some((j) => j.syncStatus === 'error')
+          ? {
+              message: diagnostics.some((d) => d.reason === 'http-403')
+                ? 'SELAE ha rechazado el acceso desde el servidor (HTTP 403). No se han podido importar o actualizar las jornadas; se conserva la copia anterior.'
+                : safeFailure('SELAE'),
+            }
+          : { message: 'Jornadas y signos oficiales actualizados.' }),
+      };
+      await save();
+    }
     if (!odds?.configured) {
       data.sync.odds = {
         state: 'unconfigured',
@@ -283,6 +315,7 @@ export async function synchronize({
     const now = clock();
     const selected = (j) => {
       const saved = privateData.journeys.find((s) => s.id === j.id);
+      if (selectedOnly && (j.resultPolicy !== 'sporting' || !saved)) return false;
       return playable({
         participation: participation(
           {
@@ -295,7 +328,11 @@ export async function synchronize({
         ),
       });
     };
-    if (!data.journeys.some((j) => selected(j) && !settled(j))) {
+    const effectiveSettled = (j) =>
+      settled(
+        withResultOverrides(j, privateData.journeys.find((s) => s.id === j.id)?.resultOverrides),
+      );
+    if (!data.journeys.some((j) => selected(j) && !effectiveSettled(j))) {
       data.sync.odds = {
         state: 'idle',
         message: 'Sin boletos habilitados pendientes de marcadores.',
@@ -319,7 +356,7 @@ export async function synchronize({
             state: 'budget',
             checkedAt: iso(clock()),
             message:
-              'Presupuesto operativo agotado; reserva protegida. Continúa la confirmación SELAE.',
+              'Presupuesto operativo agotado; reserva protegida. Los encuentros pendientes no se confirman sin resultado final.',
           };
           return null;
         }
@@ -343,24 +380,43 @@ export async function synchronize({
         if (!selected(j)) continue;
         const fixtures = allFixtures(j);
         if (
-          settled(j) ||
-          !fixtures.some((f) => f.kickoff && Date.parse(f.kickoff) < now + 48 * hour)
+          effectiveSettled(j) ||
+          (j.resultPolicy !== 'sporting' &&
+            !fixtures.some((f) => f.kickoff && Date.parse(f.kickoff) < now + 48 * hour))
         )
           continue;
         const times = fixtures
           .map((f) => f.kickoff)
           .filter(Boolean)
           .map(Date.parse);
-        if (!times.length || Math.max(...times) - Math.min(...times) >= 9 * 24 * hour) continue;
-        // One discovery per coupon; a real schedule change permits one new range discovery.
-        const signature = `${j.id}:${Math.min(...times)}:${Math.max(...times)}`;
+        const manualAnchor =
+          j.resultPolicy === 'sporting' ? Date.parse(`${j.drawDate}T12:00:00Z`) : null;
+        if (
+          manualAnchor === null &&
+          (!times.length || Math.max(...times) - Math.min(...times) >= 9 * 24 * hour)
+        )
+          continue;
+        // Daily schedule checks for selected coupons; legacy imports keep their existing policy.
+        const signature =
+          manualAnchor === null
+            ? `${j.id}:${Math.min(...times)}:${Math.max(...times)}`
+            : `${j.id}:${j.drawDate}:${iso(now).slice(0, 10)}`;
+        if (
+          manualAnchor !== null &&
+          (now < manualAnchor - 5 * 24 * hour || now > manualAnchor + 5 * 24 * hour)
+        )
+          continue;
         const key = `discovery:${signature}`;
         if (data.jobs[key]) continue;
         const raw = await billable(key, 'fixtures', {
           sportId: '10',
           language: 'en',
-          from: iso(Math.min(...times) - hour),
-          to: iso(Math.max(...times) + hour),
+          from: iso(
+            manualAnchor === null ? Math.min(...times) - hour : manualAnchor - 3.5 * 24 * hour,
+          ),
+          to: iso(
+            manualAnchor === null ? Math.max(...times) + hour : manualAnchor + 3.5 * 24 * hour,
+          ),
         });
         if (!raw) continue;
         let participants = data.metadata?.participants?.value ?? {};
@@ -386,17 +442,30 @@ export async function synchronize({
         tournaments = data.metadata.tournaments?.value ?? tournaments;
         const rows = fixtureRows(raw, participants, tournaments);
         for (const f of fixtures) {
-          const match = mapFixture(f, rows);
+          const match =
+            j.resultPolicy === 'sporting'
+              ? mapPlayedFixture(f, rows, j.drawDate)
+              : mapFixture(f, rows);
           if (match) {
             f.oddsId = match.fixtureId;
             f.competitionName = match.tournamentName;
             f.coverage = 'matched';
+            if (j.resultPolicy === 'sporting') f.kickoff = match.startTime;
             if (match.statusId === 3) f.status = 'cancelled';
             if (match.statusName === 'Postponed') f.status = 'postponed';
             if (match.statusName === 'Suspended') f.status = 'suspended';
           } else {
             f.coverage = 'unmatched';
             delete f.oddsId;
+          }
+        }
+        if (j.resultPolicy === 'sporting') {
+          const known = fixtures.filter((f) => f.kickoff).map((f) => Date.parse(f.kickoff));
+          if (known.length) {
+            j.startsAt = iso(Math.min(...known));
+            j.endsAt = iso(Math.max(...known));
+            // Never extend the administrator's cutoff or reopen a published coupon.
+            j.closesAt = iso(Math.min(Date.parse(j.closesAt), ...known));
           }
         }
         await save();
@@ -409,20 +478,46 @@ export async function synchronize({
         .filter((j) => selected(j) && !settled(j))
         .flatMap(allFixtures)
         .filter((f) => !data.jobs[`score:${f.id}:after`]).length;
-      const forecast = Math.max(remainingFinals, Math.ceil(days / 7) * 30) + 4;
+      const forecast =
+        Math.max(remainingFinals, Math.ceil(days / 7) * 30) * (selectedOnly ? 2 : 1) + 4;
       for (const task of scoreTasks(data, clock())) {
         if (!withinTime() || calls >= 12) break;
         if (!selected(task.journey)) continue;
         const { fixture: f, stage } = task;
+        const overrides = privateData.journeys.find(
+          (j) => j.id === task.journey.id,
+        )?.resultOverrides;
+        if (
+          f.number === 15 ? overrides?.pleno : overrides?.results.some((r) => r.fixtureId === f.id)
+        )
+          continue;
         if (!f.oddsId) continue;
         if (stage === 'during' && data.quota.operational - data.quota.used <= forecast) continue;
-        const key = `score:${f.id}:${stage}`;
+        const suffix = task.attempt === undefined ? stage : `${stage}-${task.attempt}`;
+        const key = `score:${f.id}:${suffix}`;
         try {
           // If the process dies after reserving, the persisted previous score is explicitly stale.
           f.stale = true;
+          let finalStatus;
+          if (task.journey.resultPolicy === 'sporting' && stage === 'after') {
+            finalStatus = await billable(`status:${f.id}:${suffix}`, 'fixture', {
+              fixtureId: f.oddsId,
+              language: 'en',
+            });
+            if (!finalStatus) continue;
+            if (finalStatus.fixtureId !== f.oddsId)
+              throw new Error('Identidad deportiva incompatible.');
+            if (finalStatus.statusId !== 2) {
+              data.jobs[key] = { state: 'not-final', attemptedAt: iso(clock()) };
+              if (finalStatus.statusId === 3) f.status = 'cancelled';
+              await save();
+              continue;
+            }
+          }
           const raw = await billable(key, 'scores', { fixtureId: f.oddsId });
           if (!raw) continue;
           Object.assign(f, parseScores(raw, f.oddsId, clock()));
+          if (finalStatus) applySportingFinal(task.journey, f, raw, finalStatus, clock());
           data.jobs[key].state = 'ok';
         } catch {
           f.stale = true;
@@ -448,7 +543,7 @@ export async function synchronize({
       );
       if (data.sync.odds.state === 'ok' && (missing || failed)) {
         data.sync.odds.state = 'partial';
-        data.sync.odds.message = `${missing} encuentros sin correspondencia deportiva; ${failed ? 'hay intentos fallidos o interrumpidos' : 'cobertura parcial'}. SELAE sigue confirmando los resultados.`;
+        data.sync.odds.message = `${missing} encuentros sin correspondencia deportiva; ${failed ? 'hay intentos fallidos o interrumpidos' : 'cobertura parcial'}. Los resultados pendientes no se dan por confirmados.`;
       }
       data.sync.odds.used = data.quota.used;
       data.sync.odds.operational = data.quota.operational;

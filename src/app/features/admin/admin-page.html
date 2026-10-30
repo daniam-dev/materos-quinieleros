@@ -14,6 +14,9 @@
   <mq-button [pressed]="tab() === 'competitions'" (activated)="selectTab('competitions')"
     >Competiciones</mq-button
   >
+  <mq-button [pressed]="tab() === 'results'" (activated)="selectTab('results')"
+    >Resultados</mq-button
+  >
 </div>
 <div
   #feedback
@@ -42,8 +45,9 @@
             <h2 id="competitions-title">Competiciones que jugamos</h2>
           </div>
           <p class="admin-help" id="competition-rules">
-            Cada boleto SELAE se juega completo: 14 encuentros y el Pleno. Si mezcla competiciones,
-            todas deben estar habilitadas. Las jornadas anteriores y las quinielas ya cargadas se
+            Este filtro se conserva para el histórico importado desde SELAE. Los boletos que añades
+            desde foto ya están elegidos por ti y no se excluyen por este filtro. Cada boleto se
+            juega completo: 14 encuentros y el Pleno. Las jornadas y quinielas anteriores se
             conservan.
           </p>
           <form (ngSubmit)="saveCompetitions()" class="admin-competition-settings">
@@ -236,11 +240,11 @@
       @case ('predictions') {
         @if (!state.snapshot.journeys.length) {
           <mq-empty-state
-            title="Esperando jornadas de SELAE"
-            message="Las jornadas se importan automáticamente. Consulta el estado de sincronización si todavía no aparecen."
+            title="Añade la primera quiniela"
+            message="Sube una foto del boleto que vais a jugar, revisa los cruces y confirma el cierre."
           >
             <mq-button variant="primary" (activated)="selectTab('journeys')"
-              >Ver sincronización</mq-button
+              >Añadir jornada</mq-button
             >
           </mq-empty-state>
         } @else if (!availableJourneys().length) {
@@ -268,7 +272,7 @@
                       Jornada {{ j.number }} ·
                       {{
                         j.competition === 'mixed'
-                          ? 'Boleto SELAE'
+                          ? 'Boleto del grupo'
                           : j.competition === 'league'
                             ? 'Liga'
                             : 'Champions / Europa League'
@@ -384,21 +388,112 @@
           </section>
         }
       }
+      @case ('results') {
+        <section aria-labelledby="results-title">
+          <h2 id="results-title">Corregir resultados</h2>
+          <p class="admin-help">
+            Los signos se calculan con el resultado deportivo final de OddsPapi. Después del cierre
+            puedes corregir un signo o el Pleno. Deja el campo en «Usar OddsPapi» para restaurar el
+            cálculo automático. Las correcciones tienen prioridad sobre futuras actualizaciones.
+          </p>
+          <label class="admin-form admin-current" for="results-journey"
+            >Jornada que quieres corregir
+            <select
+              id="results-journey"
+              [ngModel]="resultId()"
+              (ngModelChange)="selectResults($event)"
+            >
+              <option value="">Selecciona una jornada</option>
+              @for (j of state.snapshot.journeys; track j.id) {
+                @if (j.resultPolicy === 'sporting') {
+                  <option [value]="j.id">Jornada {{ j.number }} · {{ j.seasonId }}</option>
+                }
+              }
+            </select>
+          </label>
+          @if (resultJourney(); as selected) {
+            <form (ngSubmit)="saveResults()">
+              <div class="admin-fixtures">
+                @for (fixture of selected.fixtures; track fixture.id; let i = $index) {
+                  <label class="admin-form" [for]="'result-' + i"
+                    >{{ i + 1 }}. {{ fixture.home }} · {{ fixture.away }}
+                    <select
+                      [id]="'result-' + i"
+                      [name]="'result-' + i"
+                      [(ngModel)]="resultSigns[i]"
+                    >
+                      <option value="">Usar OddsPapi</option>
+                      <option value="1">1</option>
+                      <option value="X">X</option>
+                      <option value="2">2</option>
+                    </select>
+                  </label>
+                }
+              </div>
+              <fieldset class="admin-pleno">
+                <legend>
+                  Pleno al 15 · {{ selected.pleno.fixture.home }} ·
+                  {{ selected.pleno.fixture.away }}
+                </legend>
+                <div class="admin-fields">
+                  <label class="admin-form" for="result-home"
+                    >Goles local<select id="result-home" name="resultHome" [(ngModel)]="resultHome">
+                      <option value="">Usar OddsPapi</option>
+                      @for (goal of goals; track goal) {
+                        <option [value]="goal">{{ goal }}</option>
+                      }
+                    </select></label
+                  >
+                  <label class="admin-form" for="result-away"
+                    >Goles visitante<select
+                      id="result-away"
+                      name="resultAway"
+                      [(ngModel)]="resultAway"
+                    >
+                      <option value="">Usar OddsPapi</option>
+                      @for (goal of goals; track goal) {
+                        <option [value]="goal">{{ goal }}</option>
+                      }
+                    </select></label
+                  >
+                </div>
+              </fieldset>
+              <label class="admin-form" for="result-note"
+                >Motivo de la corrección<input
+                  id="result-note"
+                  name="resultNote"
+                  minlength="5"
+                  maxlength="240"
+                  required
+                  [(ngModel)]="resultNote"
+              /></label>
+              <button type="submit" class="mq-button mq-button--primary">
+                Guardar correcciones
+              </button>
+            </form>
+          }
+        </section>
+      }
       @case ('journeys') {
         <section aria-labelledby="journeys-title">
-          <div class="section-heading"><h2 id="journeys-title">Jornadas importadas</h2></div>
+          <div class="section-heading"><h2 id="journeys-title">Jornadas del grupo</h2></div>
+          <details class="admin-new-coupon" [open]="!state.snapshot.journeys.length">
+            <summary>Añadir jornada desde una foto</summary>
+            <mq-coupon-import [busy]="busy()" (submitted)="createPlayedJourney($event)" />
+          </details>
           <p class="admin-help">
-            Los horarios y resultados se actualizan automáticamente. La jornada en curso se mantiene
-            como actual hasta su confirmación oficial.
+            Solo se actualizan los encuentros de los boletos que guardes. OddsPapi aporta horarios,
+            marcadores y signos cuando confirma el final. La jornada en curso se mantiene como
+            actual hasta que tenga sus resultados confirmados.
           </p>
           <div class="sync-summary">
             <p>
               {{
-                state.snapshot.synchronization?.['selae']?.message ??
-                  'Primera sincronización pendiente.'
+                state.snapshot.synchronization?.['coupons']?.message ??
+                  'Añade un boleto para empezar. No se importan jornadas automáticamente de SELAE.'
               }}
             </p>
-            @if (state.snapshot.synchronization?.['selae']?.checkedAt; as checked) {
+            @if (state.snapshot.synchronization?.['odds']?.checkedAt; as checked) {
               <p class="muted">Último intento: {{ checked | madridDate: 'dd/MM/yyyy HH:mm' }}</p>
             }
             <p>
@@ -416,7 +511,7 @@
               }
             }
             <mq-button (activated)="retrySync()" [disabled]="busy()"
-              >Reintentar sincronización</mq-button
+              >Actualizar horarios y marcadores</mq-button
             >
           </div>
           <ul class="admin-people">
@@ -429,7 +524,13 @@
                   >
                   <span
                     >{{ j.startsAt | madridDate: 'dd/MM/yyyy' }} ·
-                    {{ j.officialId ? 'SELAE ' + j.officialId : 'Histórico conservado' }}</span
+                    {{
+                      j.origin === 'admin'
+                        ? 'Boleto revisado por el administrador'
+                        : j.officialId
+                          ? 'SELAE ' + j.officialId
+                          : 'Histórico conservado'
+                    }}</span
                   >
                   <span>{{
                     j.syncStatus === 'error'

@@ -135,7 +135,7 @@
             {{
               state() === 'complete'
                 ? 'Clasificación final de los 14 encuentros.'
-                : 'Clasificación provisional según signos oficiales.'
+                : 'Clasificación provisional según signos confirmados.'
             }}
           </p>
         } @else {
@@ -173,7 +173,14 @@
         @for (fixture of current.fixtures; track fixture.id) {
           <li>
             <span class="fixture-number">{{ fixture.number.toString().padStart(2, '0') }}</span
-            ><span>{{ fixture.home }} <span class="muted">—</span> {{ fixture.away }}</span>
+            ><span
+              >{{ fixture.home }} <span class="muted">—</span> {{ fixture.away }}
+              @if (current.origin === 'admin') {
+                <small class="muted">
+                  · {{ fixture.category === 'women' ? 'Femenino' : 'Masculino' }}</small
+                >
+              }
+            </span>
           </li>
         }
       </ol>
@@ -184,16 +191,17 @@
   }
   <mq-dialog title="Cálculo de aciertos" [(visible)]="rulesVisible"
     ><p>
-      Solo un <strong>signo oficial publicado</strong> convierte un pronóstico en acierto o fallo.
-      Un marcador en juego o un partido finalizado sin signo oficial sigue pendiente.
+      Un <strong>signo ganador confirmado</strong> convierte un pronóstico en acierto o fallo. En
+      los boletos del grupo se obtiene del resultado final de OddsPapi: victoria local 1, empate X y
+      victoria visitante 2. Un marcador en juego sigue siendo provisional.
     </p>
     <p>
-      <strong>Adm.</strong> indica una liquidación administrativa. Su X cuenta en el boleto, pero no
-      significa que los equipos hayan empatado.
+      <strong>Adm.</strong> indica una corrección del administrador, que tiene prioridad sobre el
+      resultado deportivo. Un doble acertado suma un acierto, igual que un sencillo.
     </p>
     <p>
-      Porcentaje = aciertos / pronósticos registrados con signo oficial. Una apuesta no registrada
-      queda fuera del denominador.
+      Porcentaje = aciertos / pronósticos registrados con signo confirmado. Una apuesta no
+      registrada queda fuera del denominador.
     </p>
     <p>El Pleno al 15 se comprueba por separado. M significa tres o más goles.</p>
     <p>

@@ -46,7 +46,7 @@ export class JourneysPage {
   readonly competitionLabels = {
     league: 'Liga',
     europe: 'Champions / Europa League',
-    mixed: 'Boleto SELAE',
+    mixed: 'Boleto del grupo',
   } as const;
   readonly journeys = computed(() =>
     [...(this.store.snapshot()?.journeys ?? [])].sort(

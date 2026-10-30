@@ -4,9 +4,9 @@ Aplicación de La Quiniela del grupo Materos Quinieleros. SPA Angular con API pa
 
 ## Cómo funciona
 
-Tras la configuración inicial en Netlify, la aplicación importa jornadas de SELAE y actualiza resultados automáticamente. Daniel selecciona una jornada importada, carga los pronósticos de los participantes y guarda. Antes del cierre permanecen privados; después, el grupo consulta la comparativa y la clasificación sin registrarse. Los marcadores OddsPapi son provisionales y SELAE confirma los resultados que cuentan.
+Daniel añade una foto o captura del boleto que vais a jugar, revisa los quince cruces y confirma fecha y cierre. Carga los pronósticos del grupo; antes del cierre permanecen privados. OddsPapi aporta horarios y marcadores y, cuando confirma el final, los signos que determinan aciertos y clasificación. El administrador puede corregirlos. No se descubren jornadas automáticamente desde SELAE.
 
-[Flujo completo de la aplicación](docs/flujo.md): preparación inicial, tarea habitual, cierre, resultados, actualización de las pantallas e incidencias. La automatización está implementada localmente; su puesta en servicio y verificación remota siguen pendientes.
+[Flujo actual desde fotografía](docs/importacion-fotografia.md): revisión del boleto, cierre, resultados deportivos y correcciones. La clave y la cobertura real de OddsPapi siguen pendientes de verificar.
 
 ## Ejecutar
 

@@ -16,7 +16,7 @@ Un grupo de amigos consulta y compara sus quinielas semanales sin registrarse. D
 
 ## Capacidades y restricciones
 
-Jornadas y Clasificación con los nueve participantes reales. Importación automática de SELAE, jornada actual determinista e histórico conservado. Administración exclusiva de Daniel: altas/bajas/reincorporaciones y carga/corrección de quinielas ajenas, hasta dos dobles por persona y Pleno separado. Autorización en servidor y privacidad antes del cierre. OddsPapi aporta marcadores provisionales con presupuesto persistente; solo signos SELAE confirman aciertos históricos. Fuentes consultadas centralmente, sin gasto por visitante. Sin editor manual de resultados, premios económicos ni un sistema nuevo de puntos. No hay despliegue ni cobertura autenticada verificados.
+Jornadas y Clasificación con los nueve participantes reales. Daniel carga una foto, revisa los quince cruces y confirma fecha/cierre; solo se guardan los boletos que juega el grupo. OCR local, sin enviar fotos al servidor. Jornada actual determinista e histórico conservado. Administración exclusiva: personas, apuestas de hasta dos dobles y Pleno separado, correcciones de resultados tras el cierre. Autorización en servidor y privacidad antes del cierre. OddsPapi aporta horarios, marcadores y signos deportivos definitivos cuando confirma finalización; correcciones administrativas prevalecen. Presupuesto persistente, sin gasto por visitante. El histórico anterior conserva sus signos originales. Sin premios económicos ni un sistema nuevo de puntos. Web desplegada; clave y cobertura autenticada OddsPapi aún pendientes.
 
 ## Compromisos de marca
 

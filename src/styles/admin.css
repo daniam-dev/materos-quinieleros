@@ -14,6 +14,7 @@
   }
   .admin-form input,
   .admin-form select,
+  .admin-form textarea,
   .admin-actions > input {
     min-height: var(--control-height);
     width: 100%;
@@ -174,6 +175,39 @@
   .admin-paste {
     margin-block: var(--space-6);
     max-width: 48rem;
+  }
+  .admin-paste summary,
+  .admin-new-coupon > summary {
+    cursor: pointer;
+    padding-block: var(--space-4);
+    color: var(--color-accent);
+  }
+  .admin-new-coupon {
+    margin-block: var(--space-5) var(--space-10);
+    border-block: var(--border-width) solid var(--color-line);
+  }
+  .admin-import {
+    padding-block: var(--space-5);
+  }
+  .admin-import-fields {
+    min-width: 0;
+    border: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+  }
+  .admin-import-fields > legend {
+    font-size: var(--text-lg);
+    margin-bottom: var(--space-5);
+  }
+  .coupon-photo-preview {
+    display: block;
+    max-height: 28rem;
+    max-width: 100%;
+    width: auto;
+    object-fit: contain;
+    align-self: flex-start;
   }
   .admin-paste input {
     flex: 1;

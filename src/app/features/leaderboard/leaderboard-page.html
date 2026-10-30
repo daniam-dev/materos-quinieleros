@@ -9,7 +9,7 @@
 <section aria-labelledby="ranking-title">
   <div class="section-heading ranking-intro">
     <h2 id="ranking-title">Clasificación</h2>
-    <p class="muted">{{ rows().length }} participantes · Solo resultados oficiales</p>
+    <p class="muted">{{ rows().length }} participantes · Solo resultados confirmados</p>
   </div>
   @if (!store.snapshot()?.journeys?.length) {
     <p class="ranking-notice muted">
@@ -94,7 +94,7 @@
   <mq-card
     ><h2>El porcentaje pone las cosas en contexto.</h2>
     <p>
-      Los aciertos se dividen entre los pronósticos registrados que ya tienen signo oficial. Así
+      Los aciertos se dividen entre los pronósticos registrados que ya tienen signo confirmado. Así
       puedes comparar a quienes han participado en distintas jornadas.
     </p>
     <p>Sin signos evaluables mostramos «Sin datos». El Pleno al 15 se evalúa aparte.</p></mq-card
@@ -106,7 +106,7 @@
       adicionales.
     </p>
     <p>
-      Una jornada ganada se cuenta al publicarse sus 14 signos oficiales. Si varios participantes
+      Una jornada ganada se cuenta al publicarse sus 14 signos confirmados. Si varios participantes
       empatan en aciertos, comparten la victoria.
     </p>
     <p class="muted">

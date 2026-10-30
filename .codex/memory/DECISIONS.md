@@ -41,3 +41,11 @@ Exige cuota exclusiva: 200 llamadas operativas, reserva 50, nunca superar 250 ni
 ## Seleccion de boletos por competicion - 2026-10-27
 
 El usuario resuelve la alternativa pendiente eligiendo mantener boletos oficiales SELAE y habilitarlos o excluirlos segun sus competiciones; no encarga quinielas propias ni recortar partidos del boleto. Sustituye la pregunta pendiente en ROADMAP. Elecciones de implementacion: todas las competiciones de un mixto deben estar habilitadas; falta de identificacion completa queda pendiente al activar el filtro; confirmacion manual del administrador cuando SELAE no publica torneos; preservar historico y apuestas cargadas. Catalogo inicial de siete mas Otras agrupadas, sin prometer cobertura real del proveedor ni catalogo exhaustivo. Reglas detalladas en docs/competiciones.md y validacion en CURRENT.
+
+## Cambio a seleccion por fotografia - 2026-10-30
+
+El usuario elige importacion asistida y concreta que quiere fotografiar el boleto para cargar su informacion en Administracion, conservando solo las quinielas que juega el grupo. Sustituye el descubrimiento automatico de todos los boletos como entrada habitual. La foto aportada muestra los 15 cruces y categorias M/F, pero no numero, fecha o cierre: no se deducen esos datos. Pregunta que automatizacion puede conservarse con OddsPapi; no ha aprobado convertir sus resultados deportivos en signos oficiales ni cambiar la regla de clasificacion.
+
+## Resultados deportivos definitivos elegidos - 2026-10-30
+
+El usuario confirma que el signo ganador se obtenga automaticamente de OddsPapi, con correccion administrativa disponible. Sustituye para las jornadas nuevas la regla anterior de OddsPapi solo provisional y SELAE como unica confirmacion. Local gana1, empateX, visitante2; sencillo o doble acertado suma uno, maximo14, Pleno separado y victorias compartidas por empate en aciertos. Se conserva el historico sin reinterpretarlo. Implementacion exige finalizacion explicita del proveedor e identidad coincidente, no el reloj ni un marcador aislado. El cierre es la hora de Madrid que el administrador confirma al revisar el boleto, sin deducir cierre comercial desde OddsPapi.

@@ -27,6 +27,12 @@ export default defineConfig({
       dependencies: ['desktop', 'tablet', 'mobile'],
       use: { viewport: { width: 1440, height: 1000 } },
     },
+    {
+      name: 'photo',
+      testMatch: 'photo.spec.ts',
+      dependencies: ['admin'],
+      use: { viewport: { width: 1440, height: 1000 } },
+    },
   ],
   webServer: {
     command: 'node scripts/e2e-server.mjs',

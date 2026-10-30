@@ -1,0 +1,133 @@
+<section aria-labelledby="import-title" class="admin-import">
+  <h3 id="import-title">Añadir la quiniela que jugamos</h3>
+  <p class="admin-help">
+    Sube una foto o captura del boleto. La lectura propone los cruces; tú revisas y confirmas. Solo
+    se guardarán las jornadas que añadas aquí.
+  </p>
+  <fieldset [disabled]="busy() || reading()" class="admin-import-fields">
+    <legend class="sr-only">Leer el boleto</legend>
+    <label class="admin-form" for="coupon-photo"
+      >Foto del boleto (JPG, PNG o WebP, hasta 12 MB)
+      <input
+        id="coupon-photo"
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        (change)="readPhoto($event)"
+      />
+    </label>
+    <p class="admin-help">La foto se procesa en tu dispositivo y no se guarda en el servidor.</p>
+    @if (preview()) {
+      <img
+        class="coupon-photo-preview"
+        [src]="preview()"
+        alt="Foto del boleto que estás revisando"
+      />
+    }
+    <details class="admin-paste">
+      <summary>Pegar los cruces como texto</summary>
+      <label class="admin-form" for="coupon-text"
+        >Un encuentro por línea: 1. Local (M) - Visitante (M)
+        <textarea id="coupon-text" rows="8" [(ngModel)]="text"></textarea>
+      </label>
+      <button type="button" class="mq-button" (click)="applyText()">Leer texto</button>
+    </details>
+    <button type="button" class="mq-button mq-button--quiet" (click)="manual()">
+      Introducir los 15 encuentros manualmente
+    </button>
+  </fieldset>
+  <p aria-live="polite" class="admin-help">{{ progress() }}</p>
+  @if (error()) {
+    <p role="alert" class="form-error">{{ error() }}</p>
+  }
+  @if (rows().length) {
+    <form (ngSubmit)="save()">
+      <fieldset [disabled]="busy() || reading()" class="admin-import-fields">
+        <legend>Revisa el boleto antes de guardarlo</legend>
+        <div class="admin-fields">
+          <label class="admin-form" for="coupon-number"
+            >Número de jornada<input
+              id="coupon-number"
+              name="number"
+              type="number"
+              min="1"
+              max="999"
+              required
+              [(ngModel)]="number"
+              (ngModelChange)="confirmed = false"
+          /></label>
+          <label class="admin-form" for="coupon-date"
+            >Fecha de la jornada<input
+              id="coupon-date"
+              name="drawDate"
+              type="date"
+              required
+              [(ngModel)]="drawDate"
+              (ngModelChange)="confirmed = false"
+          /></label>
+          <label class="admin-form" for="coupon-close"
+            >Cierre de apuestas · hora de Madrid<input
+              id="coupon-close"
+              name="closesAt"
+              type="datetime-local"
+              required
+              [(ngModel)]="closesAt"
+              (ngModelChange)="confirmed = false"
+          /></label>
+        </div>
+        <p class="admin-help">
+          La foto puede no incluir fecha o cierre. Copia el cierre publicado o el que acuerde el
+          grupo; no se deduce de la imagen. Las apuestas permanecerán privadas hasta ese momento.
+          OddsPapi buscará los horarios dentro de la semana de esta jornada.
+        </p>
+        <div class="admin-fixtures">
+          @for (row of rows(); track $index; let i = $index) {
+            <fieldset class="fixture-editor">
+              <legend>{{ i === 14 ? 'Pleno al 15' : 'Encuentro ' + (i + 1) }}</legend>
+              <div class="admin-fields">
+                <label class="admin-form" [for]="'coupon-home-' + i"
+                  >Local<input
+                    [id]="'coupon-home-' + i"
+                    [name]="'home-' + i"
+                    required
+                    maxlength="80"
+                    [(ngModel)]="row.home"
+                    (ngModelChange)="confirmed = false"
+                /></label>
+                <label class="admin-form" [for]="'coupon-away-' + i"
+                  >Visitante<input
+                    [id]="'coupon-away-' + i"
+                    [name]="'away-' + i"
+                    required
+                    maxlength="80"
+                    [(ngModel)]="row.away"
+                    (ngModelChange)="confirmed = false"
+                /></label>
+                <label class="admin-form" [for]="'coupon-category-' + i"
+                  >Categoría<select
+                    [id]="'coupon-category-' + i"
+                    [name]="'category-' + i"
+                    required
+                    [(ngModel)]="row.category"
+                    (ngModelChange)="confirmed = false"
+                  >
+                    <option value="">Selecciona M/F</option>
+                    <option value="men">Masculino (M)</option>
+                    <option value="women">Femenino (F)</option>
+                  </select></label
+                >
+              </div>
+            </fieldset>
+          }
+        </div>
+        <label class="admin-check"
+          ><input type="checkbox" name="confirmed" [(ngModel)]="confirmed" /><span
+            >He revisado los 15 cruces, su orden, las categorías y el cierre.</span
+          ></label
+        >
+        <button class="mq-button mq-button--primary" type="submit" [disabled]="!confirmed">
+          {{ busy() ? 'Guardando…' : 'Guardar jornada y cargar quinielas' }}
+        </button>
+      </fieldset>
+    </form>
+  }
+</section>

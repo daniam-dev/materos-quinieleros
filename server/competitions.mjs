@@ -41,6 +41,8 @@ export function identifiedCompetitions(journey, assignments = {}) {
 export function participation(journey, settings, assignments) {
   const classification = identifiedCompetitions(journey, assignments);
   const base = { competitionIds: classification.ids, source: classification.source };
+  if (journey.origin === 'admin' && journey.resultPolicy === 'sporting')
+    return { ...base, state: 'enabled', reason: 'Boleto elegido y revisado por el administrador.' };
   if (!settings?.enabled)
     return { ...base, state: 'enabled', reason: 'Filtro de competiciones desactivado.' };
   if (

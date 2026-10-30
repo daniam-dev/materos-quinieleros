@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { adminId } from './auth.mjs';
 import { competitionIds, fixtureSignature, playable, withParticipation } from './competitions.mjs';
 import { currentJourney } from './sports-data.mjs';
+import { applyPlayedCommand } from './played-journeys.mjs';
 
 export class ApiError extends Error {
   constructor(status, message, code) {
@@ -45,8 +46,14 @@ export function publicSeason(snapshot, now) {
     currentJourneyId,
     season: current?.source
       ? { id: current.seasonId, label: current.source.season.replace('-', ' / ') }
-      : visible.season,
-    journeys: journeys.map((journey) => {
+      : current?.resultPolicy === 'sporting'
+        ? {
+            id: current.seasonId,
+            label: `${current.seasonId.slice(0, 4)} / ${current.seasonId.slice(-2)}`,
+          }
+        : visible.season,
+    journeys: journeys.map((entry) => {
+      const { resultOverrides: _privateOverrides, ...journey } = entry;
       const published = Date.parse(journey.closesAt) <= now;
       const { official, ...pleno } = journey.pleno;
       return {
@@ -69,6 +76,7 @@ export function applyCommand(original, command, now = Date.now()) {
   requireValue(command && typeof command === 'object', 'Operación no válida.');
   const snapshot = withParticipation(structuredClone(original));
   delete snapshot.asOf;
+  if (applyPlayedCommand(snapshot, command, now)) return snapshot;
   switch (command.type) {
     case 'set-competitions': {
       requireValue(typeof command.enabled === 'boolean', 'Estado del filtro no válido.');

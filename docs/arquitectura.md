@@ -22,18 +22,18 @@ La aplicación usa componentes standalone con OnPush, rutas cargadas bajo demand
 
 `QuinielaRepository` define `loadSeason(): Promise<SeasonSnapshot>`. `QUINIELA_REPOSITORY` desacopla interfaz y datos. `HttpQuinielaRepository` consulta `/api/season`; el servidor fija `asOf` y filtra datos privados. `QuinielaStore` expone datos, carga, error y reintento. La edición usa `AdminService` y un snapshot privado separado del store público.
 
-La temporada arranca sin jornadas y con los nueve participantes reales. SELAE aporta jornadas con identidad oficial y orden. `currentJourneyId` selecciona automáticamente la más antigua empezada sin todos los resultados confirmados, después la próxima y finalmente la última. El histórico conserva todas las temporadas. Los valores heredados `league` y `europe` siguen admitidos; las importaciones usan `mixed` hasta disponer de evidencia de las competiciones, sin deducirlas por fecha/equipo. [Flujo habitual](datos.md).
+La temporada arranca sin jornadas y con los nueve participantes reales. Daniel revisa un borrador obtenido por OCR local o texto y confirma quince cruces, número, fecha y cierre. Los nuevos boletos tienen `origin: admin`, `resultPolicy: sporting`, IDs internos estables y temporada derivada de la fecha. Solo esos boletos se siguen automáticamente con OddsPapi; no se descubre SELAE en producción. `currentJourneyId` mantiene la más antigua empezada sin resultados confirmados, después la próxima y finalmente la última. El histórico conserva todas las temporadas y los datos anteriores. [Flujo actual](importacion-fotografia.md).
 
 ## Cálculos
 
-- Los primeros 14 encuentros se evalúan exclusivamente con `OfficialResult` publicado antes de `asOf`. Un sencillo o doble que incluya el signo oficial suma un acierto; máximo 14. Hasta dos dobles por persona, validados en el servidor.
+- Los primeros 14 encuentros se evalúan con `OfficialResult` publicado antes de `asOf` (nombre interno heredado para signos confirmados). En jornadas deportivas el signo procede del resultado final de OddsPapi con finalización explícita; el histórico SELAE conserva sus datos. Un sencillo o doble que incluya el signo suma un acierto; máximo 14. Hasta dos dobles por persona, validados en el servidor.
 - Un marcador en curso o finalizado sin signo oficial no cuenta como resultado evaluable.
 - Una liquidación administrativa usa su signo de boleto; una X administrativa no inventa un empate deportivo.
 - Una predicción ausente se muestra como «Sin apuesta» y no entra en el denominador.
 - Porcentaje: aciertos / pronósticos registrados con signo oficial × 100. Sin evaluables: `null`, presentado como «Sin datos».
 - El Pleno exige coincidencia de ambos valores (0, 1, 2 o M). M equivale a tres o más goles. No modifica los aciertos ni el porcentaje de los otros 14.
 - Orden determinista: aciertos descendentes, porcentaje descendente (ausencia de datos al final), nombre con comparación española e identificador. No se introducen puntos.
-- Una victoria solo se adjudica con los 14 signos oficiales publicados. Empates en aciertos comparten victoria; el desempate de ordenación no altera ese reconocimiento. No se exige que el Pleno esté liquidado.
+- Una victoria solo se adjudica con los 14 signos confirmados publicados. Empates en aciertos comparten victoria; el desempate de ordenación no altera ese reconocimiento. No se exige que el Pleno esté liquidado.
 - Una jornada participada es la inscripción explícita en `participantIds`, aunque aún no haya resultados o falte algún pronóstico. Solo las jornadas publicadas de la temporada contribuyen al histórico público.
 - La actividad actual del participante no filtra sus registros históricos. Una inscripción histórica se mantiene tras la desactivación.
 

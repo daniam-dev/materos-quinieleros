@@ -10,7 +10,7 @@
       Pronósticos de la jornada
       {{
         journey().number
-      }}. Solo el signo oficial determina los aciertos.
+      }}. Solo el signo confirmado determina los aciertos.
     </caption>
     <thead>
       <tr>
@@ -18,7 +18,7 @@
           <span class="table-heading">Encuentro</span><span class="score-heading">Marcador</span>
         </th>
         <th scope="col" class="official-column">
-          <abbr title="Signo oficial publicado">Oficial</abbr>
+          <abbr title="Signo ganador confirmado">Signo</abbr>
         </th>
         @for (participant of participants(); track participant.id) {
           <th
@@ -46,6 +46,9 @@
               <div class="teams">
                 <span>{{ row.fixture.home }}</span
                 ><span>{{ row.fixture.away }}</span>
+                @if (journey().origin === 'admin') {
+                  <small>{{ row.fixture.category === 'women' ? 'Femenino' : 'Masculino' }}</small>
+                }
                 @if (row.fixture.competitionName) {
                   <small>{{ row.fixture.competitionName }}</small>
                 }
@@ -83,19 +86,21 @@
             @if (row.official; as official) {
               <span class="official-sign">{{ official.sign }}</span>
               @if (official.note) {
-                <span class="administrative-note" [title]="official.note">SELAE</span>
+                <span class="administrative-note" [title]="official.note">{{
+                  official.source === 'selae'
+                    ? 'SELAE'
+                    : official.source === 'sporting'
+                      ? 'Final'
+                      : 'Corrección'
+                }}</span>
               }
               @if (official.source === 'administrative') {
-                <span
-                  class="administrative-note"
-                  title="Liquidación administrativa: no es un empate deportivo"
-                  >Adm.<span class="sr-only"
-                    >: liquidación administrativa, no es un empate deportivo</span
-                  ></span
+                <span class="administrative-note" title="Resultado corregido por el administrador"
+                  >Adm.<span class="sr-only">: resultado corregido por el administrador</span></span
                 >
               }
             } @else {
-              <span class="pending-official" aria-label="Signo oficial pendiente">—</span>
+              <span class="pending-official" aria-label="Signo ganador pendiente">—</span>
             }
           </td>
           @for (cell of row.cells; track cell.participant.id) {

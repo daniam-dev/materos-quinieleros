@@ -24,7 +24,7 @@ import { AuthService } from './core/auth/auth-service';
         <a routerLink="/jornadas" class="brand" aria-label="Materos Quinieleros, Jornadas"
           ><svg class="brand-symbol" viewBox="0 0 36 36" aria-hidden="true">
             <path d="M5 27V9l13 14L31 9v18M5 9l13 14L31 9M18 23v7" /></svg
-          ><span>materos<span class="brand-subtitle">QUINIELEROS</span></span></a
+          ><span>materos <span class="brand-subtitle">QUINIELEROS</span></span></a
         >
         <nav aria-label="Navegación principal">
           <a routerLink="/jornadas" routerLinkActive="active" ariaCurrentWhenActive="page"

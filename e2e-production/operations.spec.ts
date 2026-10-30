@@ -1,17 +1,22 @@
 import { expect, test } from '@playwright/test';
 
-test('operación: importación SELAE lista para cargar quinielas reales', async ({ request }) => {
+test('operación: boletos elegidos conservan su identidad y política deportiva', async ({
+  request,
+}) => {
   const response = await request.get('/api/season');
   expect(response.status()).toBe(200);
   const snapshot = await response.json();
-  expect(
-    snapshot.synchronization?.selae?.state,
-    JSON.stringify(snapshot.synchronization?.selae),
-  ).toBe('ok');
-  expect(
-    snapshot.journeys.length,
-    'Debe haber al menos un boleto importado para operar',
-  ).toBeGreaterThan(0);
+  for (const journey of snapshot.journeys.filter(
+    (j: { origin?: string }) => j.origin === 'admin',
+  )) {
+    expect(journey.resultPolicy).toBe('sporting');
+    expect(journey.fixtures).toHaveLength(14);
+    expect(journey.pleno.fixture.number).toBe(15);
+    expect(journey.participation.state).toBe('enabled');
+  }
+  // An empty group is valid until the administrator selects a coupon; no automatic SELAE import.
+  if (snapshot.synchronization?.coupons)
+    expect(snapshot.synchronization.coupons.state).toBe('manual');
 });
 
 test('operación: snapshot público fresco y selección coherente de jornada', async ({ request }) => {

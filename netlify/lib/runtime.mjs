@@ -22,6 +22,7 @@ export async function syncSports(context, force = false) {
       context?.deploy?.context === 'production' ? process.env.ODDSPAPI_KEY : undefined,
     ),
     force,
+    selectedOnly: true,
   });
 }
 

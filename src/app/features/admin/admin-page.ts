@@ -22,11 +22,20 @@ import { MqPageHeader } from '../../shared/ui/page-header';
 import { MqButton } from '../../shared/ui/button';
 import { MqLoadingState } from '../../shared/ui/loading-state';
 import { MqEmptyState } from '../../shared/ui/empty-state';
+import { CouponImport } from './coupon-import';
 import { Participant } from '../../domain/models';
 
 @Component({
   selector: 'mq-admin-page',
-  imports: [MadridDatePipe, FormsModule, MqPageHeader, MqButton, MqLoadingState, MqEmptyState],
+  imports: [
+    MadridDatePipe,
+    FormsModule,
+    MqPageHeader,
+    MqButton,
+    MqLoadingState,
+    MqEmptyState,
+    CouponImport,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './admin-page.html',
 })
@@ -41,7 +50,17 @@ export class AdminPage {
   readonly busy = signal(false);
   readonly error = signal('');
   readonly notice = signal('');
-  readonly tab = signal<'predictions' | 'people' | 'journeys' | 'competitions'>('predictions');
+  readonly tab = signal<'predictions' | 'people' | 'journeys' | 'competitions' | 'results'>(
+    'predictions',
+  );
+  readonly resultId = signal('');
+  readonly resultJourney = computed(() =>
+    this.data()?.snapshot.journeys.find((j) => j.id === this.resultId()),
+  );
+  resultSigns = Array<string>(14).fill('');
+  resultHome = '';
+  resultAway = '';
+  resultNote = '';
   readonly availableJourneys = computed(
     () =>
       this.data()?.snapshot.journeys.filter(
@@ -117,7 +136,7 @@ export class AdminPage {
     });
   }
 
-  selectTab(tab: 'predictions' | 'people' | 'journeys' | 'competitions'): void {
+  selectTab(tab: 'predictions' | 'people' | 'journeys' | 'competitions' | 'results'): void {
     if (this.busy()) return;
     this.error.set('');
     this.notice.set('');
@@ -326,6 +345,38 @@ export class AdminPage {
       'Sincronización solicitada. Revisa el estado de las fuentes.',
     );
     if (!this.journeyId()) this.journeyId.set(this.data()?.snapshot.currentJourneyId ?? '');
+  }
+  async createPlayedJourney(command: AdminCommand): Promise<void> {
+    const previous = new Set(this.data()?.snapshot.journeys.map((j) => j.id));
+    if (await this.commit(command, 'Jornada guardada. Ya puedes cargar las quinielas del grupo.')) {
+      const created = this.data()?.snapshot.journeys.find((j) => !previous.has(j.id));
+      if (created) this.selectJourney(created.id);
+      this.tab.set('predictions');
+      this.notice.set('Jornada guardada. Ya puedes cargar las quinielas del grupo.');
+    }
+  }
+  selectResults(id: string): void {
+    this.resultId.set(id);
+    const overrides = this.resultJourney()?.resultOverrides;
+    this.resultSigns =
+      this.resultJourney()?.fixtures.map(
+        (f) => overrides?.results.find((r) => r.fixtureId === f.id)?.sign ?? '',
+      ) ?? Array<string>(14).fill('');
+    this.resultHome = overrides?.pleno?.home ?? '';
+    this.resultAway = overrides?.pleno?.away ?? '';
+    this.resultNote = '';
+  }
+  async saveResults(): Promise<void> {
+    await this.commit(
+      {
+        type: 'correct-results',
+        journeyId: this.resultId(),
+        signs: this.resultSigns,
+        pleno: { home: this.resultHome, away: this.resultAway },
+        note: this.resultNote,
+      },
+      'Correcciones guardadas. Los campos vacíos vuelven a usar el resultado de OddsPapi.',
+    );
   }
   async logout(): Promise<void> {
     if (this.busy()) return;

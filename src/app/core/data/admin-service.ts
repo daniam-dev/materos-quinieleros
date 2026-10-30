@@ -15,6 +15,27 @@ export interface AdminSnapshot {
   };
 }
 export type AdminCommand =
+  | {
+      type: 'create-played-journey';
+      number: number;
+      drawDate: string;
+      closesAt: string;
+      confirmed: boolean;
+      fixtures: {
+        home: string;
+        away: string;
+        category: 'men' | 'women';
+        kickoff: string | null;
+        competitionName: string | null;
+      }[];
+    }
+  | {
+      type: 'correct-results';
+      journeyId: string;
+      signs: string[];
+      pleno: { home: string; away: string };
+      note: string;
+    }
   | { type: 'sync' }
   | { type: 'set-competitions'; enabled: boolean; enabledIds: string[] }
   | {

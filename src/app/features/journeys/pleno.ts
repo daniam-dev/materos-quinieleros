@@ -11,13 +11,13 @@ import { MadridDatePipe } from '../../shared/ui/madrid-date';
   template: `<section aria-labelledby="pleno-title">
     <div class="section-heading">
       <h2 id="pleno-title">Pleno al 15</h2>
-      <mq-badge>{{ official() ? 'Resultado oficial' : 'Pendiente' }}</mq-badge>
+      <mq-badge>{{ official() ? 'Resultado confirmado' : 'Pendiente' }}</mq-badge>
     </div>
     <p class="pleno-fixture">
       {{ journey().pleno.fixture.home }} <span>—</span> {{ journey().pleno.fixture.away }}
     </p>
     @if (official(); as result) {
-      <p class="muted">Oficial: {{ result.home }} – {{ result.away }}</p>
+      <p class="muted">Confirmado: {{ result.home }} – {{ result.away }}</p>
     } @else if (journey().pleno.fixture.score; as score) {
       <p class="muted">
         Provisional: {{ score.home }} – {{ score.away }}

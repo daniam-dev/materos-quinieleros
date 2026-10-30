@@ -1,5 +1,9 @@
 # Jornadas importadas y quinielas
 
+Desde el 30/10/2026 se aplica el [flujo de fotografía y resultados deportivos](importacion-fotografia.md),
+que sustituye la entrada automática SELAE y su papel como fuente definitiva de las jornadas nuevas.
+Las jornadas anteriores conservan sus datos. El cierre lo confirma el administrador en hora de Madrid.
+
 Daniel Arroyo entra en `/acceso` como `daniel-arroyo`. **Administración** solo aparece con su sesión validada. [Preparar el acceso](administracion.md).
 
 1. Las jornadas se importan automáticamente de SELAE. En **Jornadas** se muestran sus estados y el de las fuentes; el reintento es para incidencias, no un paso semanal.

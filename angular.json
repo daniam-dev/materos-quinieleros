@@ -23,9 +23,25 @@
               {
                 "glob": "**/*",
                 "input": "public"
+              },
+              {
+                "glob": "worker.min.js",
+                "input": "node_modules/tesseract.js/dist",
+                "output": "ocr"
+              },
+              {
+                "glob": "*lstm*.{js,wasm}",
+                "input": "node_modules/tesseract.js-core",
+                "output": "ocr/core"
+              },
+              {
+                "glob": "spa.traineddata.gz",
+                "input": "node_modules/@tesseract.js-data/spa/4.0.0_best_int",
+                "output": "ocr/lang"
               }
             ],
-            "styles": ["src/styles.css"]
+            "styles": ["src/styles.css"],
+            "allowedCommonJsDependencies": ["tesseract.js", "regenerator-runtime/runtime"]
           },
           "configurations": {
             "production": {

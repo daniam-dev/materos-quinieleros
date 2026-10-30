@@ -1,5 +1,10 @@
 # Importación y seguimiento automático
 
+**Modo actual desde el 30/10/2026:** [boletos desde fotografía y resultados deportivos](importacion-fotografia.md).
+Producción usa exclusivamente jornadas guardadas por el administrador y no consulta SELAE.
+Las secciones SELAE siguientes describen el adaptador anterior, conservado para regresiones;
+las cuotas, aislamiento y reservas siguen vigentes con los detalles del flujo actual enlazado.
+
 La [selección de competiciones](competiciones.md) se configura desde el panel. SELAE sigue actualizando todos los boletos; el worker omite marcadores de los pendientes o excluidos según la configuración leída al iniciar el ciclo.
 
 ## Configuración inicial

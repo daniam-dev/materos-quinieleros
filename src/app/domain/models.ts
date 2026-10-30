@@ -25,7 +25,7 @@ export interface Fixture {
   readonly category?: 'men' | 'women' | 'unknown';
   readonly competitionName?: string | null;
   readonly scoreSource?: 'SELAE' | 'OddsPapi';
-  readonly scoreScope?: 'coupon' | 'regulation';
+  readonly scoreScope?: 'coupon' | 'regulation' | 'final';
   readonly scoreUpdatedAt?: string;
   readonly stale?: boolean;
   readonly scorePeriods?: Readonly<
@@ -50,6 +50,17 @@ export interface PlenoPrediction {
   readonly away: GoalPrediction;
 }
 export interface Journey {
+  readonly origin?: 'admin';
+  readonly resultPolicy?: 'sporting';
+  readonly drawDate?: string;
+  readonly resultOverrides?: {
+    readonly results: readonly OfficialResult[];
+    readonly pleno?: {
+      readonly home: GoalPrediction;
+      readonly away: GoalPrediction;
+      readonly publishedAt: string;
+    };
+  };
   readonly fixtureSignature?: string;
   readonly participation?: {
     readonly state: 'enabled' | 'excluded' | 'pending' | 'preserved';

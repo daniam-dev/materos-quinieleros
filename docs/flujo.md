@@ -1,4 +1,8 @@
-# Flujo de la aplicación
+# Flujo anterior: importación SELAE
+
+El flujo normal cambió el 30/10/2026. Consulta [jornadas desde fotografía](importacion-fotografia.md)
+para la entrada de boletos elegidos, cierre, resultados OddsPapi y correcciones. El texto
+siguiente conserva la referencia del modo anterior y no describe el flujo actual de producción.
 
 La tarea habitual de Daniel es **seleccionar una jornada importada, rellenar o corregir los pronósticos de cada participante y guardar**. Las jornadas, los cruces, sus horarios y los resultados se obtienen desde las fuentes deportivas. Los demás participantes consultan la web sin registrarse.
 

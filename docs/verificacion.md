@@ -1,5 +1,44 @@
 # Verificación
 
+## Foto revisada y resultados deportivos — 30/10/2026
+
+Implementado el [flujo actual](importacion-fotografia.md): OCR local con revisión de
+quince cruces, número/fecha/cierre explícitos, solo boletos seleccionados y signos
+definitivos obtenidos del resultado deportivo de OddsPapi con finalización explícita.
+Las correcciones administrativas se conservan separadas y prevalecen sobre el worker.
+
+`npm run check` aprobado: formato, texto, lint, ambos TypeScript, **40 pruebas Angular,
+75 de servidor y build de 499,34 kB**. Nueve E2E aprobados en 32,9 s en pasada conjunta
+final. Bundling de las tres Functions aprobado. Auditoría con npm 11.13.0: cero
+vulnerabilidades. La primera instalación utilizó npm 11.5.2 y avisó del engine;
+el lock se regularizó con npm 11.13.0 sin modificar el npm global.
+
+La E2E nueva usa Tesseract real y assets locales: imagen PNG sintética con los
+quince cruces transcritos de la captura del usuario, no el archivo original. Reconoce
+15/15, treinta nombres exactos y categorías M/F. Comprueba confirmación obligatoria,
+invalidación al editar, creación y persistencia, guardado de catorce signos y Pleno,
+privacidad antes del cierre y que el filtro heredado no excluye el boleto seleccionado.
+Las pruebas de servidor cubren correspondencia única por nombres/categoría/ventana,
+finalización explícita, no suma de prórroga/penaltis, signos y Pleno, reservas de cuota,
+revisión de final pendiente y conservación de apuestas/correcciones.
+
+Cuatro capturas en `.impeccable/review/photo-{review,created}-{desktop,mobile}.png`:
+axe sin violaciones en los estados probados, sin desbordamientos ni errores JS.
+El detector mecánico no informa hallazgos, en modo degradado por parsers opcionales
+ausentes. Revisión independiente de la extensión: matriz visual conforme y único
+hallazgo documental de DESIGN.md corregido; verdict `ship` para ese ajuste. No es
+certificación WCAG ni revisión de todas las rutas del producto.
+
+Hubo fallos intermedios de E2E: estado accesible duplicado (corregido con `aria-live`),
+espera insuficiente tras recargar la dependencia administrativa y error de la propia
+prueba al cerrar un details ya abierto. La pasada conjunta final cubre sus correcciones.
+El OCR está cargado de forma diferida y servidor no recibe ni guarda la imagen.
+
+Sin consultas autenticadas OddsPapi ni consumo de cuota. La clave, formato/cobertura
+reales y persistencia operativa de resultados deportivos siguen pendientes. Pruebas
+con proveedores simulados y almacenamiento temporal; personas, apuestas y secretos
+reales intactos. El seed continúa con nueve participantes y sin jornadas.
+
 La batería y los hallazgos del despliegue real del 30/10/2026 están en
 [Pruebas de producción](pruebas-produccion.md). Los apartados siguientes conservan
 la evidencia local de implementación.
